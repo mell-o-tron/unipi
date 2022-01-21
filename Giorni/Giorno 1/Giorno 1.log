@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2021.4.19)  27 MAY 2021 12:56
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2021.6.6)  21 JAN 2022 21:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -719,7 +719,7 @@ File: l3backend-pdfmode.def 2020-02-03 L3 backend support: PDF mode
 \l__kernel_color_stack_int=\count313
 \l__pdf_internal_box=\box107
 )
-No file "Giorno 1".aux.
+(./Giorno 1.aux)
 \openout1 = `"Giorno 1.aux"'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 37.
@@ -738,6 +738,7 @@ LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 37.
 LaTeX Font Info:    ... okay on input line 37.
 LaTeX Info: Redefining \it@ocap on input line 37.
 LaTeX Info: Redefining \it@ccap on input line 37.
+
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
 *geometry* verbose mode - [ preamble ] result:
@@ -817,36 +818,34 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] [3] (./Giorno 1.aux) )
  
 Here is how much of TeX's memory you used:
- 26602 strings out of 483099
- 645339 string characters out of 5964234
- 1286981 words of memory out of 5000000
- 41199 multiletter control sequences out of 15000+600000
+ 26604 strings out of 481239
+ 645365 string characters out of 5920378
+ 1291664 words of memory out of 5000000
+ 41440 multiletter control sequences out of 15000+600000
  547832 words of font info for 62 fonts, out of 8000000 for 9000
- 59 hyphenation exceptions out of 8191
+ 1141 hyphenation exceptions out of 8191
  69i,17n,98p,799b,2217s stack positions out of 5000i,500n,10000p,200000b,80000s
- </home/mrdalliard/.texlive2019/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx0800.
-600pk> </home/mrdalliard/.texlive2019/texmf-var/fonts/pk/ljfour/jknappen/ec/ecr
-m0800.600pk> </home/mrdalliard/.texlive2019/texmf-var/fonts/pk/ljfour/jknappen/
-ec/ecti1000.600pk> </home/mrdalliard/.texlive2019/texmf-var/fonts/pk/ljfour/jkn
-appen/ec/ecbx1200.600pk> </home/mrdalliard/.texlive2019/texmf-var/fonts/pk/ljfo
-ur/jknappen/ec/ecrm1000.600pk> </home/mrdalliard/.texlive2019/texmf-var/fonts/p
-k/ljfour/jknappen/ec/ecbx1000.600pk> </home/mrdalliard/.texlive2019/texmf-var/f
-onts/pk/ljfour/jknappen/ec/ecbx1440.600pk> </home/mrdalliard/.texlive2019/texmf
--var/fonts/pk/ljfour/jknappen/ec/ecrm1728.600pk></usr/share/texlive/texmf-dist/
-fonts/type1/public/amsfonts/cmextra/cmex8.pfb></usr/share/texlive/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/ty
-pe1/public/amsfonts/cm/cmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/pu
-blic/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr1
-2.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></
-usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/shar
-e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texl
-ive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb>
-Output written on "Giorno 1.pdf" (3 pages, 166493 bytes).
+{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-t1.enc}</usr/share/texlive/
+texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex8.pfb></usr/share/texlive/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texlive/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type
+1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/
+cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb
+></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr
+/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/
+texmf/fonts/type1/public/cm-super/sfbx0800.pfb></usr/share/texmf/fonts/type1/pu
+blic/cm-super/sfbx1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx12
+00.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx1440.pfb></usr/share/t
+exmf/fonts/type1/public/cm-super/sfrm0800.pfb></usr/share/texmf/fonts/type1/pub
+lic/cm-super/sfrm1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm172
+8.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfti1000.pfb>
+Output written on "Giorno 1.pdf" (3 pages, 245062 bytes).
 PDF statistics:
- 311 PDF objects out of 1000 (max. 8388607)
- 76 compressed objects within 1 object stream
+ 94 PDF objects out of 1000 (max. 8388607)
+ 69 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 

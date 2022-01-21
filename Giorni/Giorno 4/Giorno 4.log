@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2021.6.6)  18 JUN 2021 19:42
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2021.6.6)  21 JAN 2022 21:25
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -799,7 +799,7 @@ File: l3backend-pdfmode.def 2020-02-03 L3 backend support: PDF mode
 \l__kernel_color_stack_int=\count313
 \l__pdf_internal_box=\box127
 )
-No file "Giorno 4".aux.
+(./Giorno 4.aux)
 \openout1 = `"Giorno 4.aux"'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 40.
@@ -818,6 +818,7 @@ LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 40.
 LaTeX Font Info:    ... okay on input line 40.
 LaTeX Info: Redefining \it@ocap on input line 40.
 LaTeX Info: Redefining \it@ccap on input line 40.
+
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
 *geometry* verbose mode - [ preamble ] result:
@@ -903,8 +904,8 @@ File: t1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] [3] (./Giorno 4.aux) )
  
 Here is how much of TeX's memory you used:
- 28182 strings out of 481239
- 689180 string characters out of 5920378
+ 28184 strings out of 481239
+ 689206 string characters out of 5920378
  1320145 words of memory out of 5000000
  42970 multiletter control sequences out of 15000+600000
  549015 words of font info for 62 fonts, out of 8000000 for 9000
