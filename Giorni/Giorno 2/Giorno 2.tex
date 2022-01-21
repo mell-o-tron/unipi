@@ -1,0 +1,271 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[italian]{babel} 
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc} 
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[margin=25mm]{geometry}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{pgfplots}
+%opening
+\title{Giorno 2}
+\author{Lorenzo Pace}
+
+\theoremstyle{definition}
+\newtheorem{deff}{Def.}[section]
+\newtheorem{lemma}[deff]{Lemma}
+\newtheorem{es}[deff]{Es.}
+\newtheorem{ex}[deff]{Esercizio}
+\newtheorem{teo}[deff]{Teorema}
+\newtheorem{prop}[deff]{Proposizione}
+\lstset
+{ %Formatting for code in appendix
+    language=Pascal,
+    otherkeywords={print, ref}, 
+    basicstyle=\footnotesize,
+    numbers=left,
+    stepnumber=1,
+    showstringspaces=false,
+    tabsize=1,
+    breaklines=true,
+    breakatwhitespace=false,
+}
+\renewcommand{\qedsymbol}{\rule{1ex}{1ex}}
+\begin{document}
+
+\begin{center}
+    \LARGE Giorno 2
+\end{center}
+\section{Divide et Impera}
+L'approccio Divide et Impera consiste nel dividere un problema in sottoproblemi che sono versioni ``più piccole'' dello stesso. Si applicano tre passi:
+\begin{enumerate}
+    \item \textbf{Divide}: Si divide il problema in sottoproblemi
+    \item \textbf{Impera}: Si applica ricorsivamente l'algoritmo per risolvere ognuno dei sottoproblemi
+    \item \textbf{Combina}: Si combinano le soluzioni dei sottoproblemi per generare la soluzione al problema iniziale
+\end{enumerate}
+\subsection{Merge Sort}
+Un esempio di algoritmo divide et impera è Merge Sort, un algoritmo di sorting ricorsivo.
+\begin{multicols}{2}
+\begin{quote}
+ 
+\begin{lstlisting}[escapeinside={(?}{?)}]
+MS(A, p, r):
+    if(r > p):
+        q = (? $\bigg\lfloor \dfrac{p+r}{2} \bigg\rfloor$ ?);
+        MS(A, p, q);
+        MS(A, q+1, r);
+        Merge(A, p, q, r);
+\end{lstlisting}
+
+\end{quote}
+
+\bigskip
+\bigskip
+\bigskip
+\bigskip
+\bigskip
+Costo di Merge: $\Theta(n)$
+
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+Merge(A, p, q, r):
+    n1 = q - p + 1;
+    n2 = r - q;
+    L = nuovo array di lunghezza n1+1;
+    R = nuovo array di lunghezza n2+1;
+    for(i = 1 to n1): L[i] = A[p+i-1];
+    for(i = 1 to n2): R[i] = A[q+i];
+    L[n1 + 1] = (?$+\infty$?);
+    R[n2 + 1] = (?$+\infty$?);
+    i = 1; j = 1;
+    for(k = p to r):
+        if(L[i] (?$\geq$?) R[j]):
+            A[k] = R[j]; j++;
+        else:
+            A[k] = L[i]; i++;
+\end{lstlisting}
+\end{multicols}
+\subsubsection{Invariante di ciclo di Merge}
+All'inizio della $k$-esima iterazione, $A[p...k-1]$ contiene, ordinati i $k-p$ elementi più piccoli di $L$ e $R$.
+
+\begin{enumerate}
+    \item \textbf{Inizializzazione}: Prima della prima iterazione si ha $k = p$, e zero elementi sono banalmente ordinati.
+    \item \textbf{Conservazione}: Ad ogni iterazione si inserisce in $A[k]$ o il primo elemento di $L[i, n_1]$ o il primo elemento di $R[j, n_2]$. Tali elementi sono rispettivamente il minimo di $L[i, n_1]$ e quello di $R[j, n_2]$ poiché i due array sono ordinati.
+    \item \textbf{Conclusione}: L'array $A$, alla fine dell'ultima iterazione, è ordinato poiché tutti gli elementi sono stati copiati tranne le sentinelle ($+\infty$).
+\end{enumerate}
+
+\newpage
+\subsection{Ricorrenze}
+Una ricorrenza è un'equazione o disequazione che definisce una funzione in termini del suo valore con input più piccoli. Ad esempio, la ricorrenza che definisce la complessità in tempo di Merge Sort è:
+\[T(n) = \begin{cases}
+            \Theta(1) &\text{Se $n = 1$}\\
+            2T\bigg(\dfrac{n}{2}\bigg) + \Theta(n) &\text{se $n > 1$}
+         \end{cases}
+\]
+\subsection{Metodi di risoluzione delle ricorrenze}
+\subsubsection{Metodo di sostituzione}
+Si ipotizza una possibile soluzione e la si dimostra per induzione.
+
+\subsubsection{Metodo dell'albero di ricorsione}
+Si rappresentano i costi dei sottoproblemi in alberi: 
+Si consideri ad esempio la ricorrenza di Merge Sort, che viene rappresentata come:\smallskip
+\begin{multicols}{2}
+All' $i$-esimo livello il costo è \[2^{i-1}\cdot\Theta\bigg(\dfrac{n}{2^{i-1}}\bigg) = \Theta(n)\]
+
+Sia $h$ l'altezza dell'albero: si ha che \[\begin{aligned}
+T\bigg(\dfrac{n}{2^{h-1}}\bigg) = T(1) &\iff \dfrac{n}{2^{h-1}} = 1\\
+&\iff n = 2^{h-1} \\&\iff h-1 = \log_2n
+\end{aligned}\] 
+Quindi l'altezza dell'albero è $h = \log_2 n + 1$. Per trovare il costo totale si sommano i costi ad ogni livello:
+
+
+\begin{tikzpicture}[every node/.style = {shape=rectangle, align=center}, level 1/.style={sibling distance=7em},
+  level 2/.style={sibling distance=4em},
+  level 3/.style={sibling distance=2em},
+  level 4/.style={sibling distance=1em}]]
+  \node (Root) {$cn$}
+    child { node {$\frac{cn}{2}$} 
+        child {node {$\hdots$} 
+            child[dashed] {node {T(1)}}}
+        child {node {$\hdots$} 
+        child[dashed] {node {T(1)}}}}
+     child { node {$\frac{cn}{2}$} 
+        child {node {$\hdots$} child[dashed] {node {T(1)}}}
+        child {node {$\hdots$} child[dashed] {node {T(1)}}}};
+\path (Root)  ++(4cm,0) node{$\Theta(n)$};
+\path (Root-2 -| Root)  ++(4cm,0) node{$2\cdot\Theta(\frac{n}{2})$};
+\path (Root-2-2 -| Root)  ++(4cm,0) node{$4\cdot\Theta(\frac{n}{4})$};
+\path (Root-2-2-1 -| Root)  ++(4cm,0) node{$2^{h-1}\cdot\Theta(\frac{n}{2^{h-1}})$};
+\end{tikzpicture}
+
+\end{multicols}
+\[\sum_{i = 0}^{\log_2 n + 1}2^{i-1}\cdot\Theta\bigg(\dfrac{n}{2^{i-1}}\bigg) = \sum_{i = 0}^{\log_2 n + 1}\Theta(n) = \Theta(n) \sum_{i = 0}^{\log_2 n + 1} 1 = \Theta(n) \cdot \log_2 (n) + 1 = \Theta(n \log n)\] 
+
+\subsubsection{Master Theorem}
+\begin{teo}
+    Data una ricorrenza della forma $T(n) = a \cdot T\bigg(\dfrac{n}{b}\bigg) + f(n)$, $b \neq 0$:
+    
+    \begin{enumerate}
+     \item Se $f(n) = O(n^{\log_b a - \varepsilon})$ per qualche $\varepsilon > 0$, allora $T(n) = \Theta(n^{\log_b a})$
+     \item Se $f(n) = \Theta(n^{\log_b a})$ allora $T(n) = \Theta(n^{\log_b a} \log n)$
+     \item 
+     \begin{itemize}
+      \item $f(n) = \Omega(n^{\log_b a + \varepsilon})$ per qualche $\varepsilon > 0$
+      \item $af\bigg(\dfrac{n}{b}\bigg) \leq cf(n)$ definitivamente per qualche $c<1$
+     \end{itemize}
+    $\implies T(n) = \Theta(f(n))$
+    \end{enumerate}
+
+\end{teo}
+
+
+\newpage \section{Quicksort}
+Quicksort suddivide ricorsivamente un array in due partizioni, una che contiene solo elementi maggiori di un certo elemento detto \emph{pivot}, ed un altro che contiene solo gli elementi ad esso maggiori. Il pivot viene inserito tra le due partizioni, nella sua posizione finale.
+
+\begin{multicols}{2}
+\begin{quote}
+ 
+\begin{lstlisting}[escapeinside={(?}{?)}]
+QS(A, p, r):
+    if(r > p):
+        q = Partizion(A, p, r)
+        QS(A, p-1, q);
+        QS(A, q+1, r);
+\end{lstlisting}
+
+\end{quote}
+
+\bigskip
+\bigskip
+\bigskip
+\bigskip
+\bigskip
+Costo di Partition: $\Theta(n)$
+
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+Partition(A, p, r):
+    x = A[r]
+    i = p-1; j = p;
+    while(j<r):
+        if(A[j] (?$\leq$?) x):
+            i++;
+            scambia A[i], A[j];
+        j++;
+    scambia A[i+1], A[r]
+    return i+1;
+
+\end{lstlisting}
+\end{multicols}
+\subsubsection{Invariante di ciclo di Partition}
+All'inizio della $j$ esima iterazione:
+\begin{enumerate}
+ \item Il sottoarray $A[p .. i]$ contiene solo elementi minori di $x$;
+ \item Il sottoarray $A[i+1 .. j-1]$ contiene solo elementi maggiori di $x$;
+ \item $A[r] = x$.
+\end{enumerate}
+\begin{enumerate}
+    \item \textbf{Inizializzazione}: Prima della prima iterazione i due sottoarray sono vuoti, quindi le proprietà sono vacuamente soddisfatte;
+    \item \textbf{Conservazione}: Ad ogni iterazione, se $A[j]$ è minore di $x$ si incrementa $i$ e si scambiano $A[i] ed A[j]$ (proprietà 1), mentre se $A[j]$ è maggiore di $x$, si incrementa semplicemente $j$ (proprietà 2). 
+    \item \textbf{Conclusione}: Alla fine del ciclo, $A[p .. i]$ e $A[i+1 .. r-1]$ sono le due partizioni, e $A[r]$ vale ancora $x$.
+\end{enumerate}
+
+\subsection{Complessità di Quicksort}
+La complessità di QS varia tra il caso ottimo, il caso pessimo ed il caso medio.
+\subsubsection{Caso ottimo}
+Al caso ottimo l'albero di ricorsione è bilanciato (il pivot è sempre il valor medio dell'array). In questo caso la ricorrenza che caratterizza $T(n)$ è:
+\[T(n) \leq \begin{cases}
+            \Theta(1) &\text{Se $n = 1$}\\
+            2T\bigg(\dfrac{n}{2}\bigg) + \Theta(n) &\text{se $n > 1$}
+         \end{cases}
+\]
+La cui soluzione sappiamo essere (per il teorema dell'esperto) $T(n) = n \log n$
+\subsubsection{Caso pessimo}
+Al caso pessimo l'albero di ricorsione è molto sbilanciato, poiché il pivot è sempre maggiore o minore di tutti gli elementi (quindi una delle partizioni è sempre vuota). Si ha che:
+\[T(n) = \begin{cases}
+            \Theta(1) &\text{Se $n = 1$}\\
+            T(n-1) + T(0) + \Theta(n) &\text{se $n > 1$}
+         \end{cases}
+\]
+
+L'albero di ricorsione ha profondità $n$, ed il costo ad ogni livello è $\Theta(n)$, perciò si ha un costo totale di $n \cdot \Theta(n) = \Theta(n^2)$
+
+\subsubsection{Ripartizione bilanciata}
+Nel caso di ripartizione bilanciata, dato $a<1$, si ha:
+\[T(n) \leq \begin{cases}
+            \Theta(1) &\text{Se $n = 1$}\\
+            T(a\cdot n) + T((1-a)\cdot n) + \Theta(n) &\text{se $n > 1$}
+         \end{cases}
+\]
+Quindi l'albero di ricorsione, assumendo ad esempio $a>\dfrac{1}{2}$, ha questa forma:
+
+\begin{center}
+ 
+\begin{tikzpicture}[every node/.style = {shape=rectangle, align=center}, level 1/.style={sibling distance=17em},
+  level 2/.style={sibling distance=7em},
+  level 3/.style={sibling distance=4em},
+  level 4/.style={sibling distance=2em}]]
+  \node (Root) {$cn$}
+    child { node {$ca\cdot n$} 
+        child {node {$ca^2\cdot n$} 
+            child[dashed] {node {$T(1)$}}
+            child[dashed] {node {}}}
+        child {node {$c(a - a^2)n$} 
+        child[dashed] {node {}}
+        child[dashed] {node {}}}}
+     child { node {$c(1-a)\cdot n$} 
+        child {node {$c(a - a^2)n$} child[dashed] {node {}}child[dashed] {node {}}}
+        child {node {$c(1-a)^2 \cdot n$} child[dashed] {node {}} 
+        child {node {$c(1-a)^3$}child[dashed] {node {}} child[dashed] {node {}child[missing] {node {}}child[dashed] {node {$T(1)$}}} } }};
+\path (Root)  ++(7cm,0) node{$cn$};
+\path (Root-2 -| Root)  ++(7cm,0) node{$cn$};
+\path (Root-2-2 -| Root)  ++(7cm,0) node{$cn$};
+\path (Root-2-2-1 -| Root)  ++(7cm,0) node{$cn$};
+\path (Root-2-2-2-1 -| Root)  ++(7cm,0) node{$\leq cn$};
+\path (Root-2-2-2-2-2 -| Root)  ++(7cm,0) node{$\leq cn$};
+\end{tikzpicture}
+\end{center}
+
+(e ok do go on)
+\end{document}

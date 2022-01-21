@@ -1,0 +1,455 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[italian]{babel} 
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc} 
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[margin=25mm]{geometry}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{pgfplots}
+\usepackage{soul}
+
+
+%opening
+\title{Giorno 6}
+\author{Lorenzo Pace}
+
+\theoremstyle{definition}
+\newtheorem{deff}{Def.}[section]
+\newtheorem{lemma}[deff]{Lemma}
+\newtheorem{es}[deff]{Es.}
+\newtheorem{ex}[deff]{Esercizio}
+\newtheorem{teo}[deff]{Teorema}
+\newtheorem{prop}[deff]{Proposizione}
+\lstset
+{ %Formatting for code in appendix
+    language=Pascal,
+    otherkeywords={print, ref, nil, return, elif}, 
+    basicstyle=\footnotesize,
+    numbers=left,
+    stepnumber=1,
+    showstringspaces=false,
+    tabsize=1,
+    breaklines=true,
+    breakatwhitespace=false,
+}
+\renewcommand{\qedsymbol}{\rule{1ex}{1ex}}
+\setlength{\parindent}{0em}
+\usetikzlibrary{shapes}
+\usetikzlibrary{shapes.misc}
+
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\rationals}{\mathbb{Q}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+
+\tikzset{cross/.style={cross out, draw=black, minimum size=2*(#1-\pgflinewidth), inner sep=0pt, outer sep=0pt},
+%default radius will be 1pt. 
+cross/.default={1pt}}
+
+
+\begin{document}
+
+\begin{center}
+    \LARGE Giorno 6
+\end{center}
+
+
+
+\begin{multicols}{2}
+ \section{Alberi Binari di Ricerca}
+Un albero binario di ricerca (\emph{ABR}, o \emph{BST}, \emph{Binary Search Tree}) è un albero binario tale che, per ogni nodo interno $v$, tutti gli elementi del sottoalbero sinistro di $v$ hanno chiave $< v.key$, e tutti gli elementi del sottoalbero destro hanno chiave $\geq v.key$.
+\bigskip
+
+
+
+\begin{center}
+ 
+\begin{tikzpicture}[level distance=2.4em, every node/.style = {shape=rectangle, align=center, circle, draw=black!60, thick, minimum size=2mm}, level 1/.style={sibling distance=5em},
+  level 2/.style={sibling distance=2.5em},
+  level 3/.style={sibling distance=30pt},
+  level 4/.style={sibling distance=3em}]]
+  \node (Root) {$30$}
+    child{node{$10$}
+        child{node{$5$}}
+        child{node{$20$}}}
+    child{node{$40$}
+        child{node{$37$}}
+        child{node{$50$}
+            child[missing]{}
+            child{node{$69$}}}};
+
+\end{tikzpicture}
+
+\end{center}
+
+\end{multicols}
+\subsection{Ricerca in un ABR}
+La ricerca di un elemento $k$ di un ABR è, come suggerisce il nome, la ricerca binaria:
+\begin{quote}
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+ABR-Search(v, k):
+    if(v (?==?) nil): return nil;
+    if(v.key (?==?) k): return v;
+    if(k (?$\geq$?) v.key): return ABR-Search(v.right, k);
+    else: return ABR-Search(v.left, k);
+ \end{lstlisting}
+
+\end{quote}
+Come la ricerca binaria su array, la ricerca binaria ha un tempo di esecuzione $O(h)$ = $O(\log n)$ al caso medio, dove $h$ è l'altezza dell'albero.
+
+\subsection{Inserimento in un ABR}
+\begin{quote}
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+ABR-Insert(r, k):
+    n = new nodo di chiave k;
+    v = r;
+    u = nil;
+    while(v (?$\neq$?) nil):
+        u = v;
+        if(k (?$\geq$?) v.key): v = v.right;
+        else: v = v.left;
+    if(k (?$\geq$?) u.key): u.right = n;
+    else: u.left = n;
+        
+ \end{lstlisting}
+\end{quote}
+Anche questa procedura ha costo $O(h)$, poiché al caso peggiore si inserisce in un elemento del livello più basso, il che comporta $h$ iterazioni del while.
+\subsection{Max, Min, Successore, Predecessore}
+Il massimo di un albero di radice $v$ è l'elemento più a destra (min duale), costo $O(h)$;
+\begin{multicols}{2}
+
+\begin{quote}
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+ABR-Max(r):
+    v = r;
+    while(v.right (?$\neq$?) nil):
+        v = v.right;
+    return v;
+ \end{lstlisting}
+\end{quote}
+\begin{quote}
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+ABR-Min(r):
+    v = r;
+    while(v.left (?$\neq$?) nil):
+        v = v.left;
+    return v;
+ \end{lstlisting}
+\end{quote}
+\end{multicols}
+Il successore può essere il minimo del sottoalbero destro, o in assenza di questo l'ancestor più vicino che contiene $v$ nel suo sottoalbero sinistro. (pred duale)
+\begin{multicols}{2}
+ 
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+ABR-Succ(v, k):
+    if(v.right (?$\neq$?) nil):
+        return ABR-Min(v.right);
+    else:
+        p = v.p;
+        u = v;
+        while(p (?$\neq$?) nil && p.left (?$\neq$?) u):
+            u = p;
+            p = u.p;
+        return p;
+ \end{lstlisting}
+
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+ABR-Pred(v, k):
+    if(v.left (?$\neq$?) nil):
+        return ABR-Max(v.left);
+    else:
+        p = v.p;
+        u = v;
+        while(p (?$\neq$?) nil && p.right (?$\neq$?) u):
+            u = p;
+            p = u.p;
+        return p;
+ \end{lstlisting}
+
+\end{multicols}
+
+\subsection{Eliminazione}
+Ci sono tre casi:
+\begin{enumerate}
+ \item Il nodo $v$ da eliminare non ha figli: in tal caso semplicemente si rimuovono i riferimenti dal parent.
+ \item $v$ ha un figlio: si sostituisce il figlio a $v$, correggendo il riferimento al parent del figlio.
+ \item $v$ ha due figli: si copia il valore (+ dati satelliti) del successore di $v$ in $v$, si pone il successore di $v$ uguale al suo figlio destro (anche $nil$). Sicuramente il successore ha al più un figlio destro poiché se avesse un figlio sinistro il successore sarebbe lui.
+
+\end{enumerate}
+
+\begin{quote}
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+ABR-Delete(v, k):
+    if(v (?è?) una foglia):
+        if(v.p.right (?==?) v): v.p.right = nil;
+        else: v.p.left = nil;
+    elif(v ha un figlio dx):
+        if(v.p.right (?==?) v): v.p.right = v.right;
+        else: v.p.left = v.right;
+    elif(v ha un figlio sx):
+        if(v.p.right (?==?) v): v.p.right = v.left;
+        else: v.p.left = v.left;
+    else:
+        u = ABR-Succ(v);
+        <copio key e dati satelliti di u (?in?) v>;
+        u = u.left;
+        
+ \end{lstlisting}
+\end{quote}
+
+
+\begin{center}
+
+ 
+\begin{tikzpicture}[level distance=2.4em, every node/.style = {shape=rectangle, align=center, circle, draw=black!60, thick, minimum size=2mm}, level 1/.style={sibling distance=5em},
+  level 2/.style={sibling distance=2.5em},
+  level 3/.style={sibling distance=30pt},
+  level 4/.style={sibling distance=3em}]]
+  \node (Root) {$30$}
+    child{node{$10$}
+        child{node{$5$}}
+        child{node{$20$}}}
+    child{node{$40$}
+        child{node{$37$}
+            child[missing]{}
+            child{node{$38$}}}
+        child{node{$50$}
+            child[missing]{}
+            child{node{$69$}}}};
+
+\end{tikzpicture}
+\begin{tikzpicture}[level distance=2.4em, every node/.style = {shape=rectangle, align=center, circle, draw=black!60, thick, minimum size=2mm}, level 1/.style={sibling distance=5em},
+  level 2/.style={sibling distance=2.5em},
+  level 3/.style={sibling distance=30pt},
+  level 4/.style={sibling distance=3em}]]
+  \node (Root) [black, fill=lightgray]{$37$}
+    child{node{$10$}
+        child{node{$5$}}
+        child{node{$20$}}}
+    child{node{$40$}
+        child{node[black, fill=lightgray]{$37$}
+            child[missing]{}
+            child{node{$38$}}}
+        child{node{$50$}
+            child[missing]{}
+            child{node{$69$}}}};
+
+\end{tikzpicture}
+\begin{tikzpicture}[level distance=2.4em, every node/.style = {shape=rectangle, align=center, circle, draw=black!60, thick, minimum size=2mm}, level 1/.style={sibling distance=5em},
+  level 2/.style={sibling distance=2.5em},
+  level 3/.style={sibling distance=30pt},
+  level 4/.style={sibling distance=3em}]]
+  \node (Root) {$37$}
+    child{node{$10$}
+        child{node{$5$}}
+        child{node{$20$}}}
+    child{node{$40$}
+        child{node[black, fill=lightgray]{$38$}
+            child[missing]{}
+            child{node[cross, thin]{$38$}}}
+        child{node{$50$}
+            child[missing]{}
+            child{node{$69$}}}};
+
+\end{tikzpicture}
+\bigskip
+
+
+
+ Esempio, cancellazione di 30
+ 
+\end{center}
+
+La cancellazione ha il costo della ricerca del successore, ossia $O(h)$.\smallskip
+
+Il problema degli ABR è che spesso tendono a diventare molto sbilanciati; servirebbero degli alberi con le stesse proprietà degli ABR, ma necessariamente bilanciati (alberi 2-3).
+
+\section{Alberi 2-3}
+\begin{multicols}{2}
+
+Gli alberi 2-3 sono alberi tali che \textbf{ogni nodo interno abbia 2 o 3 figli, e che tutte le foglie siano sullo stesso livello}. I valori inseriti si trovano \textbf{tutti nelle foglie}, ordinati per chiave da sinistra verso destra, mentre ogni nodo interno $x$ ha due attributi: 
+
+\begin{enumerate}
+ \item $x.S$ è il \textbf{massimo del sottoalbero sinistro};
+ \item $x.M$, se il nodo ha tre figli, indica il \textbf{massimo del sottoalbero centrale}.
+\end{enumerate}
+\smallskip
+
+Spesso l'$i$-esimo figlio (ordinato) del nodo $x$ è indicato con $x_i$.\smallskip
+\begin{center}
+ \scriptsize
+\begin{tikzpicture}[level distance=5em, every node/.style = {shape=rectangle, align=center, circle, draw=black!60, thick, minimum size=2mm}, level 1/.style={sibling distance=8em},
+  level 2/.style={sibling distance=3em},
+  level 3/.style={sibling distance=30pt},
+  level 4/.style={sibling distance=3em}]]
+  \node (Root) {$11, 15$}
+    child{node[minimum size=8mm]{$7, 10$}
+        child{node{7}}
+        child{node{10}}
+        child{node{11}}}
+    child{node[minimum size=8mm]{$12$}
+        child{node{12}}
+        child{node{15}}}
+    child{node[minimum size=8mm]{$18, 21$}
+        child{node{18}}
+        child{node{21}}
+        child{node{24}}};
+
+\end{tikzpicture}
+
+\smallskip
+
+\small
+L'attributo a sinistra dei nodi con tre figli è $S$, l'attributo a destra $M$. $M$ è nullo nel nodo $(12)$.
+\end{center} 
+\end{multicols}
+
+
+Tra le principali \textbf{proprietà} abbiamo:
+\begin{enumerate}
+ \item L'altezza $h$ di un albero 2-3, rispetto al numero di foglie $f$ è tale che:
+ $\log_2 f\leq h \leq \log_3 f$
+ \item Il numero di nodi $n$ è tale che:
+$2^{h+1}-1 \leq n \leq \dfrac{3^{h+1} - 1}{2}$
+\end{enumerate}
+\subsection{Ricerca in un Albero 2-3}
+In modo simile alla ricerca binaria (e ternaria), si parte dalla radice e si considera, guardando $S$ ed $M$, in quale sottoalbero si potrebbe trovare la chiave cercata.
+
+\begin{quote}
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+Search(r, k):
+    if(r (?è?) una foglia): return r.key == k ? r : nil;
+    if(k (?$\leq$?) r.S): return Search((?$r_1$?), k);
+    elif(r ha due figli || k (?$\leq$?) r.M): return Search((?$r_2$?), k);
+    else: : return Search((?$r_3$?), k);
+ \end{lstlisting}
+\end{quote}
+
+Il costo della ricerca al caso pessimo è $O(h)$.
+
+\subsection{Inserimento e cancellazione}
+\subsubsection{Inserimento}
+Per inserire un elemento $x$ in un albero 2-3, si cerca anzitutto la chiave dell'elemento, per individuare il nodo $p$ che ne sarebbe padre. Poi ci sono due possibilità: 
+\begin{enumerate}
+ \item $p$ ha due figli: Si inserisce ordinatamente (scambiando poi l'ordine dei figli se necessario) il terzo figlio $x$.
+ \item $p$ ha tre figli: Si applica la procedura split:
+ \begin{enumerate}
+  \item Si inserisce ordinatamente $x$ come quarto figlio temporaneo di $p$.
+  \item Si creano due nuovi nodi $n, m$ da due figli, tali che $n$ ha come figli $p_1$ e $p_2$, ed $m$ ha come figli $p_3$ e $p_4$ e si pongono come figli del padre di $p$:
+  \begin{enumerate}
+   \item Se il padre di $p$ aveva due figli, adesso ne ha 3 ok.
+   \item Se il padre di $p$ aveva tre figli, adesso ne ha 4, si applica split al padre di $p$. Se questo era la radice, si crea una nuova radice.
+  \end{enumerate}
+
+ \end{enumerate}
+\end{enumerate}
+\begin{center}
+\tiny
+
+ \begin{tikzpicture}[level distance=5em, every node/.style = {align=center}, level 1/.style={sibling distance=5em},
+  level 2/.style={sibling distance=2em},
+  level 3/.style={sibling distance=30pt},
+  level 4/.style={sibling distance=3em}]]
+  \node (Root)[circle, draw=black] {$11, 15$}
+    child{node[circle, draw=black, minimum size=8mm]{$7$}
+        child{node[rectangle, draw=black]{7}}
+        child{node[rectangle, draw=black]{11}}}
+    child{node[circle, draw=black, minimum size=8mm]{$12$}
+        child{node[rectangle, draw=black]{12}}
+        child{node[rectangle, draw=black]{15}}}
+    child{node[circle, draw=black,fill=lightgray, minimum size=8mm]{$18, 21$}
+        child{node[rectangle, draw=black]{18}}
+        child{node[rectangle, draw=black]{21}}
+        child{node[rectangle, draw=black]{24}}};
+
+\end{tikzpicture}
+\hspace{1mm}
+ \begin{tikzpicture}[level distance=5em, every node/.style = {align=center}, level 1/.style={sibling distance=6em},
+  level 2/.style={sibling distance=2em},
+  level 3/.style={sibling distance=30pt},
+  level 4/.style={sibling distance=3em}]]
+  \node (Root)[circle, draw=black] {$11, 15$}
+    child{node[circle, draw=black, minimum size=8mm]{$7$}
+        child{node[rectangle, draw=black]{7}}
+        child{node[rectangle, draw=black]{11}}}
+    child{node[circle, draw=black, minimum size=8mm]{$12$}
+        child{node[rectangle, draw=black]{12}}
+        child{node[rectangle, draw=black]{15}}}
+    child{node[circle, draw=black, fill=lightgray, minimum size=8mm]{$18, 21$}
+        child{node[rectangle, draw=black]{18}}
+        child{node[rectangle, draw=black]{21}}
+         child{node[rectangle, draw=black, fill=lightgray]{22}}
+        child{node[rectangle, draw=black]{24}}};
+
+\end{tikzpicture}
+\hspace{1mm}
+ \begin{tikzpicture}[level distance=5em, every node/.style = {align=center}, level 1/.style={sibling distance=4em},
+  level 2/.style={sibling distance=2em},
+  level 3/.style={sibling distance=30pt},
+  level 4/.style={sibling distance=3em}]]
+  \node (Root)[circle,fill=lightgray, draw=black] {$11, 15$}
+    child{node[circle, draw=black, minimum size=8mm]{$7$}
+        child{node[rectangle, draw=black]{7}}
+        child{node[rectangle, draw=black]{11}}}
+    child{node[circle, draw=black, minimum size=8mm]{$12$}
+        child{node[rectangle, draw=black]{12}}
+        child{node[rectangle, draw=black]{15}}}
+    child{node[circle, draw=black,fill=lightgray, minimum size=8mm]{$18$}
+        child{node[rectangle, draw=black]{18}}
+        child{node[rectangle, draw=black]{21}}}
+     child{node[circle, draw=black,fill=lightgray, minimum size=8mm]{$22$}
+         child{node[rectangle, draw=black]{22}}
+        child{node[rectangle, draw=black]{24}}};
+
+\end{tikzpicture}
+\hspace{1mm}
+ \begin{tikzpicture}[level distance=5em, every node/.style = {align=center}, level 1/.style={sibling distance=8em},
+  level 2/.style={sibling distance=4em},
+  level 3/.style={sibling distance=14pt},
+  level 4/.style={sibling distance=3em}]]
+  \node (Root)[circle, draw=black, fill=lightgray,minimum size=8mm] {$15$}
+    child{node[circle, draw=black,fill=lightgray, minimum size=8mm]{$11$}
+        child{node[circle, draw=black, minimum size=8mm]{$7$}
+        child{node[rectangle, draw=black]{7}}
+        child{node[rectangle, draw=black]{11}}}
+        child{node[circle, draw=black, minimum size=8mm]{$12$}
+        child{node[rectangle, draw=black]{12}}
+        child{node[rectangle, draw=black]{15}}}}
+    child{node[circle, draw=black,fill=lightgray, minimum size=8mm]{$21$}
+        child{node[circle, draw=black, minimum size=8mm]{$18$}
+        child{node[rectangle, draw=black]{18}}
+        child{node[rectangle, draw=black]{21}}}
+        child{node[circle, draw=black, minimum size=8mm]{$22$}
+         child{node[rectangle, draw=black]{22}}
+        child{node[rectangle, draw=black]{24}}}};
+
+\end{tikzpicture}\smallskip
+
+
+\small Inserimento di 22
+\end{center}
+
+\subsubsection{Cancellazione}
+Per la cancellazione di un elemento $x$ ci sono tre possibilità:
+\begin{enumerate}
+ \item $x$ è la radice $\implies$ l'albero diventa vuoto.
+ \item Il padre di $x$ ha tre figli: ne rimangono due ok;
+ \item Il padre di $x$ ha due figli: ne rimane 1; si applica la procedura Fuse, duale a Split:
+ \begin{enumerate}
+  \item Se il fratello ``più vicino'' del padre di $x$ ha 2 figli, lo ``fondiamo'' col padre di $x$, creando un unico nodo che ha come figli i tre figli dei due nodi fusi.
+  \item Se il fratello ``più vicino'' del padre di $x$ ha 3 figli, creiamo due nuovi nodi e dividiamo ordinatamente i figli tra questi due.
+  \begin{enumerate}
+   \item Se il padre di $x.p$ aveva tre figli, adesso ne ha due, ok.
+   \item Se il padre di $x.p$ aveva due figli, adesso ne ha uno, si applica Fuse sul padre di $x.p$.
+  \end{enumerate}
+
+ \end{enumerate}
+ 
+
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,279 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[italian]{babel} 
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc} 
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[margin=25mm]{geometry}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{pgfplots}
+%opening
+\title{Giorno 1}
+\author{Lorenzo Pace}
+
+\theoremstyle{definition}
+\newtheorem{deff}{Def.}[section]
+\newtheorem{lemma}[deff]{Lemma}
+\newtheorem{es}[deff]{Es.}
+\newtheorem{ex}[deff]{Esercizio}
+\newtheorem{teo}[deff]{Teorema}
+\newtheorem{prop}[deff]{Proposizione}
+\lstset
+{ %Formatting for code in appendix
+    language=Pascal,
+    otherkeywords={print, ref}, 
+    basicstyle=\footnotesize,
+    numbers=left,
+    stepnumber=1,
+    showstringspaces=false,
+    tabsize=1,
+    breaklines=true,
+    breakatwhitespace=false,
+}
+\renewcommand{\qedsymbol}{\rule{1ex}{1ex}}
+\begin{document}
+
+\begin{center}
+    \LARGE Giorno 1
+\end{center}
+
+
+\section{Notazioni asintotiche}
+
+\begin{multicols}{2}
+
+\begin{deff}
+    Date due funzioni $f(n)$ e $g(n)$, si dice che $f(n) = O(g(n))$ se esistono $c \neq 0$ ed $n_0$ tali che:
+    \[\forall n > n_0 : 0 \leq f(n) \leq c g(n)\]
+\end{deff}
+\smallskip
+
+\begin{deff}
+ Date due funzioni $f(n)$ e $g(n)$, si dice che $f(n) = \Omega(g(n))$ se esistono $c \neq 0$ ed $n_0$ tali che:
+ \[\forall n > n_0 : 0 \leq cg(n) \leq f(n)\]
+\end{deff}
+\begin{center}
+
+\begin{tikzpicture}[scale = .6]
+\begin{axis}[
+    axis lines = left,
+    xlabel = {},
+    ylabel = {},
+]
+%Below the red parabola is defined
+\addplot [
+    domain=2:40, 
+    samples=100, 
+    ]
+    {sqrt(x)};
+\addplot [
+    domain=2:40, 
+    samples=100, 
+    ]
+    {ln(x)};
+\addlegendentry{$f(n) = \Omega (g(n))$}
+\addlegendentry{$cg(n)$}
+
+\end{axis}
+\end{tikzpicture}
+    \end{center}
+
+\end{multicols}
+
+\begin{multicols}{2}
+
+\begin{deff}
+    Date due funzioni $f(n)$ e $g(n)$, si dice che $f(n) = \Theta(g(n))$ se \[f(n) = O(g(n)), f(n) = \Omega(g(n))\]
+    Ossia se: 
+    \[\exists c_1, c_2 \neq 0, n_0 : \forall n > n_0 : c_1g(n) \leq f(n) \leq c_2g(n)\]
+\end{deff}
+\bigskip
+\bigskip
+\begin{center}
+
+\begin{tikzpicture}[scale = .6]
+\begin{axis}[
+    axis lines = left,
+    xlabel = {},
+    ylabel = {},
+]
+%Below the red parabola is defined
+\addplot [
+    domain=2:40, 
+    samples=100, 
+    ]
+    {2.5*ln(x)};
+\addplot [
+    domain=2:40, 
+    samples=100, 
+    ]
+    {2*ln(x)};
+\addplot [
+    domain=2:40, 
+    samples=100, 
+    ]
+    {1.5*ln(x)};
+\addlegendentry{$c_1 g(n)$}
+\addlegendentry{$f(n) = \Theta(g(n))$}
+\addlegendentry{$c_2 g(n)$}
+\end{axis}
+\end{tikzpicture}
+    \end{center}
+
+\end{multicols}
+
+\section{Limiti Superiori ed Inferiori}
+\subsection{Definizioni}
+\begin{deff}
+    Dato un problema $\Pi$, se esiste un algoritmo $A$ che risolve $\Pi$ in tempo $t(n)$, allora $t(n)$ è un \emph{limite superiore} alla complessità in tempo di $\Pi$. 
+\end{deff}
+\begin{deff}
+    Dato un problema $\Pi$, se ogni algoritmo $A$ che lo risolve deve impiegare necessariamente almeno tempo $t(n)$, allora $t(n)$ è un \emph{limite inferiore} alla complessità in tempo di $\Pi$. 
+\end{deff}
+\begin{deff}
+    Dato un problema $\Pi$, se un algoritmo $A$ che lo risolve impiega tempo $t(n)$, e $t(n)$ è un limite inferiore alla complessità in tempo di $\Pi$, allora si dice che $A$ è un \emph{algoritmo ottimo}. 
+\end{deff}
+\subsection{Metodi per individuare limiti inferiori}
+\begin{enumerate}
+ \item \textbf{Dimensione dei dati}: Se per risolvere un problema si deve necessariamente accedere a tutti i dati in input, la loro dimensione è un limite inferiore alla complessità in tempo del problema. \smallskip
+ 
+ \emph{Esempio}: Per cercare l'elemento massimo di un array $A$ di dimensione $n$ si deve scansionare l'intero $A$ (il minimo potrebbe essere in ognuna delle $n$ posizioni).
+  \item \textbf{Eventi contabili}: Se al fine della risoluzione del problema è necessario che un particolare evento si verifichi un numero $f(n)$ di volte, allora $f(n)$ è un limite inferiore alla complessità in tempo del problema.\smallskip
+  
+  \emph{Esempio}: Se voglio generare le permutazioni di un insieme di $n$ numeri, devo, ovviamente, generare \emph{ogni} permutazione. La generazione di una delle $n!$ permutazioni è perciò un evento contabile, e $n!$ è un limite inferiore alla complessità del problema.
+  \item \textbf{Albero di decisione}:
+  Si rappresentano tutte le possibili ``decisioni'' nei nodi interni di un albero. I possibili esiti di ogni nodo-decisione sono i suoi figli ed i risultati sono rappresentati nelle foglie. L'altezza dell'albero è un limite inferiore alla complessità del problema.\smallskip
+  
+  \emph{Esempio}: Il limite inferiore per la ricerca binaria dell'elemento $k$ su un array di $n$ elementi è uguale all'altezza di un albero binario con $n$ foglie ($\log n$), poiché ogni scelta ha due possibili esiti (due figli), ed ognuno degli $n$ elementi può essere $k$.
+\end{enumerate}
+
+\section{Analisi di algoritmi}
+\subsection{Ricerca}
+\begin{multicols}{2}
+\subsubsection{Ricerca sequenziale}
+Sia $A$ un array di lunghezza $n$. Devo cercare la chiave $k$. 
+\begin{quote}\begin{lstlisting}[escapeinside={(?}{?)}]
+	SeqSearch(A, k):
+        for(i = 1 to n): (?$O(n)$?)
+            if(i == k) return i;
+        return -1;              
+\end{lstlisting}\end{quote}
+
+
+Costo al caso ottimo $O(1)$;
+
+Costo al caso pessimo $O(n)$, algoritmo ottimo. 
+\bigskip
+\bigskip
+\bigskip
+
+
+\subsubsection{Ricerca binaria}
+Sia $A$ un array \textbf{ordinato} di lunghezza $n$. 
+
+Devo cercare la chiave $k$. 
+
+\begin{quote}\begin{lstlisting}[escapeinside={(?}{?)}]
+	BinSearch(A, k):
+        p = 1, r = n + 1;
+        while(p (?$\leq$?) r):
+            q = (?$\bigg\lfloor \dfrac{p+r}{2}\bigg\rfloor$?);
+            if(A[q] == k) return q;
+            if(k > q) p = q;
+            else r = q;
+        return -1;
+\end{lstlisting}\end{quote}
+
+Costo al caso ottimo $O(1)$;
+
+Costo al caso pessimo $O(\log n)$, ottimo.
+
+\end{multicols}
+
+\subsection{Insertion, Selection Sort}
+\begin{multicols}{2}
+ 
+\subsubsection{Insertion Sort}
+\begin{quote}\begin{lstlisting}[escapeinside={(?}{?)}]
+	InsSort(A):
+        for(j = 2 to n):
+            k = A[j];
+            i = j-1;
+            while(i > 0 && A[i] > k):
+                A[i+1] = A[i];
+                i--;
+            A[i+1] = k;
+\end{lstlisting}\end{quote}
+
+
+\textbf{Invariante di ciclo}: Ad ogni iterazione si ha che i primi $j-1$ elementi sono ordinati.
+\begin{enumerate}
+ \item Inizializzazione: Un solo elemento è banalmente ordinato
+ \item Conservazione: Informalmente -- si inserisce il $j$-esimo elemento nel sottoarray $A[1,...,j-1]$.
+ \item Alla fine il sottoarray corrisponde all'intero array, che è perciò ordinato.
+\end{enumerate}
+
+Costo al caso ottimo: $O(n)$;
+
+Costo al caso pessimo: $O(n^2)$, non ottimo.
+
+\end{multicols}
+\begin{multicols}{2}
+\subsubsection{Selection Sort}
+\begin{quote}\begin{lstlisting}[escapeinside={(?}{?)}]
+	SelSort(A):
+        for(i = 1 to n):
+            posmin = i;
+            for(j = i+1 to n):
+                if(A[j] < A[posmin])
+                    posmin = j;
+            if(A[i] > A[posmin]):
+                tmp = A[i];
+                A[i] = A[posmin];
+                A[posmin] = tmp;
+\end{lstlisting}\end{quote}
+\begin{itemize}
+ \item[]
+ \item[]
+ \item[]
+ \item[]
+\end{itemize}
+
+Costo al caso ottimo: $O(n^2)$;
+
+Costo al caso pessimo: $O(n^2)$, non ottimo.
+\end{multicols}
+
+\textbf{Invariante di ciclo}: Ad ogni iterazione si ha che i primi $i-1$ elementi sono ordinati e sono nella loro posizione finale
+\begin{enumerate}
+\item Il sottoarray vuoto è banalmente ordinato
+ \item Conservazione: Ad ogni iterazione si prende il minimo del sottoarray $[i, ... , n]$ e lo si scambia con l'$i$-esimo elemento. 
+ 
+ Il sottoarray $A[1, ..., i-1]$ è ordinato per ipotesi induttiva, e dato che ogni suo elemento è nella sua posizione finale si ha che tutti gli elementi di $A[i, ... , n]$ sono maggiori di $A[i-1]$. Se ad $A[1, ..., i-1]$ si \emph{append}e il minimo di $A[i, ... , n]$, allora il sottoarray $A[1, ..., i]$ è necessariamente ordinato, e l'elemento $A[i]$ è nella sua posizione finale (non esiste elemento $< A[i]$ in $A[i+1, n]$).
+ \item Alla fine il sottoarray $[1, i]$ corrisponde all'intero array, che è perciò ordinato.
+\end{enumerate}
+\section{Limite inferiore per l'ordinamento (per confronti)}
+\subsection{Limite inferiore $n \log n$}
+$n\log n$ è limite inferiore per l'ordinamento.
+\begin{proof}
+Sia $A$ un array di $n$ elementi. Usiamo il metodo dell'albero di decisione per stabilire un limite inferiore per l'ordinamento, ed assumiamo w.l.o.g. che tutti gli elementi di A siano distinti.
+
+\begin{enumerate}
+ \item Usiamo come confronto la relazione $\leq$. Questa ha due possibili esiti, perciò l'albero sarà binario. 
+ \item Ogni algoritmo di ordinamento deve essere in grado di generare ognuna delle $n!$ permutazioni degli elementi di $A$. 
+\end{enumerate}
+Perciò si ha che il numero di risultati $l$ (rappresentati dalle foglie dell'albero di decisione) possibili è compreso tra $n!$ e $2^h$ (massimo di foglie per un albero binario): 
+\[\begin{aligned}
+&n! \leq l \leq  2^h   \\
+\implies & \log(n!) \leq log(l) \leq h\\
+\text{(log monotona continua) }\implies& h > \log(n!)\\ 
+\text{(Approx di Stirling)}\implies& h > \Omega(n\log(n))\\ 
+\end{aligned}
+\]
+
+\end{proof}
+
+\end{document}

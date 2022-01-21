@@ -1,0 +1,366 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[italian]{babel} 
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc} 
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[margin=25mm]{geometry}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{pgfplots}
+\usepackage{soul}
+%opening
+\title{Giorno 9}
+\author{Lorenzo Pace}
+
+\theoremstyle{definition}
+\newtheorem{deff}{Def.}[section]
+\newtheorem{lemma}[deff]{Lemma}
+\newtheorem{es}[deff]{Es.}
+\newtheorem{ex}[deff]{Esercizio}
+\newtheorem{teo}[deff]{Teorema}
+\newtheorem{prop}[deff]{Proposizione}
+\lstset
+{ %Formatting for code in appendix
+    language=Pascal,
+    otherkeywords={print, ref, nil}, 
+    basicstyle=\footnotesize,
+    numbers=left,
+    stepnumber=1,
+    showstringspaces=false,
+    tabsize=1,
+    breaklines=true,
+    breakatwhitespace=false,
+}
+\renewcommand{\qedsymbol}{\rule{1ex}{1ex}}
+\setlength{\parindent}{0em}
+\usetikzlibrary{shapes}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\rationals}{\mathbb{Q}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\begin{document}
+
+\begin{center}
+    \LARGE Giorno 9
+    
+\end{center}
+\section{Programmazione dinamica}
+Molti problemi risolti con il paradigma \emph{divide et impera}, prendiamo ad esempio il calcolo dell'$n$-esimo numero di fibonacci, vi sono sottoproblemi sovrapposti che vengono risolti più di una volta.
+
+\smallskip
+
+Ad esempio, nel calcolare $fib_5$ con la definizione $fib_n = fib_{n-1} + fib_{n-2}$, con $fib_0 = fib_1 = 1$ come caso base, i sottoproblemi sono i seguenti (sono evidenziati quelli ripetuti):
+\begin{center}
+\begin{tikzpicture}[level distance=2.4em, every node/.style = {shape=rectangle, align=center, circle, draw=black!60, thick, minimum size=2mm}, level 1/.style={sibling distance=15em},
+  level 2/.style={sibling distance=8em},
+  level 3/.style={sibling distance=30pt},
+  level 4/.style={sibling distance=3em}]]
+  \node (Root) {$f_5$}
+            child {node{$f_4$}
+                child {node[white, fill=darkgray]{$f_3$}
+                    child{node[white, fill=gray]{$f_2$}
+                        child{node[black, fill=lightgray]{$f_1$}}
+                        child{node[darkgray, fill=lightgray]{$f_0$}}}
+                    child{node[black, fill=lightgray]{$f_1$}}}
+                child {node[white, fill=gray]{$f_2$}
+                    child{node[black, fill=lightgray]{$f_1$}}
+                    child{node[darkgray, fill=lightgray]{$f_0$}}}}
+            child {node[white, fill=darkgray]{$f_3$}
+                child{node[white, fill=gray]{$f_2$}
+                child{node[black, fill=lightgray]{$f_1$}}
+                child{node[darkgray, fill=lightgray]{$f_0$}}}
+                child{node[black, fill=lightgray]{$f_1$}}};
+
+\end{tikzpicture}
+
+\end{center}
+La Programmazione Dinamica risolve ogni sottoproblema una sola volta.\smallskip
+
+I problemi che possono essere risolti dalla programmazione dinamica hanno determinate caratteristiche:
+\begin{enumerate}
+ \item Sottoproblemi sovrapposti
+ \item Sottostruttura ottima.
+\end{enumerate}
+
+Un problema ha \emph{sottostruttura ottima} quando la sua soluzione ottima contiene le soluzioni ottime dei suoi sottoproblemi. Vedremo tra poco degli esempi di sottostruttura ottima.
+
+\subsection{Fibonacci DP}
+Ricordiamo che il costo di Fibonacci \textsc{DeI} è:
+\[T(n) = T(n-1) + T(n-2) + O(1)>2T(n-2)>2^2 T(n-4) > ... > 2^i T(n-2i)\]
+Soluzione dipende da caso base se $n - 2i = \begin{cases}
+                                             0\\1
+                                            \end{cases}
+$, ossia se $\begin{cases}
+              i = \frac{n}{2} &\implies T(n) > 2^{\frac{n}{2})}\cdot T(0)  = O(2^\frac{n}{2}) \\
+              i = \frac{n-1}{2}  &\implies T(n) > 2^{\frac{n-1}{2})}\cdot T(1)  = O(2^\frac{n-1}{2}) 
+             \end{cases}$
+
+Ci sono più approcci alla programmazione dinamica. Uno applicabile al probema dell'$n$-esimo numero di Fibonacci è l'\emph{approccio bottom-up}. 
+\subsubsection{Approccio bottom-up}
+\begin{multicols}{2}
+\begin{quote}
+ \begin{lstlisting}
+Fibo(n):
+    a = 0, b = 1;
+    for(i = 0 to n):
+        c = a + b;
+        a = b;
+        b = c;
+    return b;
+ \end{lstlisting}
+
+\end{quote}
+A differenza del paradigma divide et impera, che ha un approccio \emph{top-down}, ossia parte dal caso che si vuole risolvere e scende ricorsivamente fino ai casi base, si parte dai casi base e si calcola iterativamente la soluzione (costo lineare).
+
+
+\end{multicols}
+\subsubsection{Memoization}
+Un altro approccio è quello della \emph{memoization}: si crea un dizionario di appoggio per tenere traccia di quali sottoproblemi hanno già soluzione. (costo lineare).
+\begin{quote}
+ \begin{lstlisting}
+D = new dizionario;
+Fibo(n):
+    if(n == 0): return 0;
+    if(n == 1): return 1;
+    if(n in D): return D.n;
+    else:
+        tmp = Fibo(n-1) + Fibo(n-2);
+        D.n = tmp;
+        return tmp;
+ \end{lstlisting}
+
+\end{quote}
+\newpage
+
+\subsection{Distanza di Levenshtein}
+La distanza di Levenshtein è una metrica $E_d(X, Y)$ che rappresenta il numero minimo di operazioni su caratteri (inserimenti, cancellazioni, sostituzioni) che trasformano una stringa $X$ in un'altra $Y$.\bigskip
+
+Il seguente schema può essere usato per applicare la programmazione dinamica a vari problemi:
+
+\begin{enumerate}
+ \item \textbf{Sottoproblemi}
+ 
+ Date le stringhe $X$ e $Y$ \emph{allineamento} è la struttura $\begin{matrix}
+    X\\Y
+ \end{matrix}
+$, dove i caratteri della stringa $X$ sono sovrapposti a quelli di $Y$.
+
+Siano $x_1 ... x_n$ i caratteri di $X$ e $y_1 ... y_m$ i caratteri di $Y$.
+
+Definiamo un allineamento \emph{ottimo} quando tutti i caratteri delle due stringhe coincidono.
+\begin{center}
+$\begin{matrix}
+    X\\Y
+ \end{matrix}
+ = \begin{matrix}
+    x_1,x_2, ..., x_n\\ y_1, y_2, ..., y_m
+ \end{matrix}$ è un allineamento ottimo $\implies \begin{matrix}
+    X[i,...,j]\\Y[i,...,j]
+ \end{matrix}
+ = \begin{matrix}
+    x_i, ..., x_j\\ y_i, ..., y_j
+ \end{matrix}$ lo è per $1 \leq i \leq j \leq n$
+
+\end{center}
+ Quindi il problema ha sottostruttura ottima (si dimostra per assurdo obv).\smallskip
+ 
+ Per individuare i sottoproblemi concentriamoci sugli ultimi caratteri di $X$ ed $Y$:
+ \[\begin{matrix}
+    X[1, n-1],x_n\\Y[1, m-1], y_m
+ \end{matrix}\]
+I due caratteri $x_n$ e $y_m$ possono essere uguali o diversi. 
+
+\textbf{Possiamo agire in quattro modi diversi}:
+
+ \begin{multicols}{2}
+\begin{enumerate}
+
+ \item Se sono uguali, possiamo \textbf{non fare niente}. Effetto: \[E_d(X, Y) = E_d(X[1, n-1], Y[1, m-1])\]
+ \item In caso contrario, possiamo \textbf{sostituire} $y_m$ ad $x_n$ in $X$:
+ \[E_d(X, Y) = 1+ E_d(X[1, n-1], Y[1, m-1])\]
+ \end{enumerate}
+  \end{multicols}
+  \begin{multicols}{2}
+  \begin{enumerate}
+ \item[(c)] Se non sono uguali, possiamo anche \textbf{inserire} $y_n$ in fondo ad $X$:
+ \[E_d(X, Y) = 1+ E_d(X[1, n], Y[1, m-1])\]
+ \item[(d)] Se non sono uguali, possiamo \textbf{cancellare} $x_n$ da $X$:
+ \[E_d(X, Y) = 1+ E_d(X[1, n-1], Y[1, m])\]
+
+\end{enumerate}
+ \end{multicols}
+
+\item \textbf{Sottoproblemi elementari}
+\begin{enumerate}
+ \item Per trasformare la stringa $X$, lunga $n$, nella stringa vuota, si fanno $n$ cancellazioni.
+ \item Per trasformare la stringa vuota in una stringa $Y$ lunga $m$, si fanno $m$ inserimenti.
+\end{enumerate}
+\item \textbf{Definizione ricorsiva del problema}:
+Siano $i$ e $j$ gli ultimi caratteri di $X$ ed $Y$. Sia $DP(i, j)$ la funzione ricorsiva (\textbf{D}ynamic \textbf{P}rogramming).
+\[DP(i, j) = \begin{cases}
+              DP(i-1, j-1) & \text{se $A[i] = A[j]$}\\
+              \min \begin{cases}
+                    1 + DP(i-1, j-1) & \text{(sostituzione)}\\
+                    1 + DP(i, j-1) & \text{(cancellazione)}\\
+                    1 + DP(i-1, j) & \text{(inserimento)}\\
+                   \end{cases} &\text{o/w}
+             \end{cases}
+\]
+
+\item \textbf{Risoluzione (tabella)}
+Creiamo una tabella tale che la posizione $i, j$ contenga $E_d(X[1, i], Y[1, j])$ (se $i$ o $j = 0$: $X$ o $Y$ = stringa vuota, la tabella contiene i risultati dei sottoprob. elementari).
+\begin{center}
+\begin{tabular}{|c|c c c c|}
+\hline
+  & & $y_1$ & $y_2$ & $\hdots$\\
+  \hline
+  & 0 & 1 & 2 & $\hdots$\\
+ $x_1$ &1& $DP(1, 1)$ & $DP(1, 2)$&\\
+ $x_2$ &2 & $DP(2, 1)$ & $DP(2, 2)$ & \\
+ $\vdots$ &$\vdots$ & & & $\ddots$ \\
+ \hline
+\end{tabular}
+
+\end{center}
+Segue un esempio che spiega come utilizzare questa tabella per il calcolo.
+ \end{enumerate}
+
+ \newpage
+ \subsubsection{Esempio di calcolo di $E_d$}
+ Vogliamo calcolare l'edit distance tra ALBERO e LABBRO. 
+ \begin{multicols}{2}
+  
+ \begin{center} $T = $
+\begin{tabular}{|c|c c c c c c c|}
+\hline
+  & & L & A & B & B & R & O\\
+  \hline
+  & 0 & 1 & 2 & 3& 4& 5& 6\\
+ A &1&  & & & & & \\
+ L &2 &  & & & & & \\
+ B &3 &  & & & & & \\
+ E &4 &  & & & & & \\
+ R &5 &  & & & & & \\
+ O &6 &  & & & & & \\
+ \hline
+\end{tabular}
+
+\end{center}
+ \begin{center} $T = $
+\begin{tabular}{|c|c c c c c c c|}
+\hline
+  & & L & A & B & B & R & O\\
+  \hline
+  & 0 & 1 & 2 & 3 & 4 & 5 & 6\\
+ A &1 & 1 & 1 & 2 & 3 & 4 & 5 \\
+ L &2 & 1 & 2 & 2 & 3 & 4 & 5\\
+ B &3 & 2 & 2 & 2 & 2 & 3 & 4\\
+ E &4 & 3 & 3 & 3 & 3 & 3 & 4\\
+ R &5 & 4 & 4 & 4 & 4 & 3 & 4\\
+ O &6 & 5 & 5 & 5 & 5 & 4 & \textbf{3}\\
+ \hline
+\end{tabular}
+
+\end{center}
+
+ \end{multicols}
+
+Se ogni posizione della tabella T contiene la distanza tra le due sottostringhe, allora la posizionne $(n, m) = (6,6)$ contiene il risultato del problema.\smallskip
+
+Ogni sottoproblema non elementare è definito in funzione di altri sottoproblemi, perciò vale la relazione:
+\[T[i, j] = \begin{cases}
+              T[i-1, j-1] & \text{se $X[i] = Y[j]$}\\
+              \min \begin{cases}
+                    1 + T[i-1, j-1] & \text{(sostituzione)}\\
+                    1 + T[i, j-1] & \text{(cancellazione)}\\
+                    1 + T[i-1, j] & \text{(inserimento)}\\
+                   \end{cases} &\text{o/w}
+             \end{cases}
+\]
+
+che riflette la definizione ricorsiva. Applicando questa formula si ottiene la tabella a destra.
+
+
+Complessità in tempo = Complessità in spazio = $\Theta(n \cdot m)$
+
+
+\subsection{Knapsack}
+Il Knapsack Problem, o \emph{problema dello zaino}, è un probema di ottimizzazione. Sia $A$ un insieme di $n$ elementi $a_1 ... a_n$ che hanno associati un \textbf{valore} ed un \textbf{peso}, risp. $v_1, ..., v_n$ e $w_1, ..., w_n$. Qual è il valore totale del sottoinsieme $S$ di $A$ tale che:
+\begin{enumerate}
+ \item Dato un peso massimo $W$, la somma dei pesi degli elementi è $\leq W$.
+ \item Il valore è massimo.
+\end{enumerate}
+
+\subsubsection{Problema dello zaino intero}
+Assumiamo ogni elemento possa essere incluso o meno in $S$ (non si possono prendere frazioni di un elemento).
+
+Se proviamo a risolvere questo problema senza fare uso della programmazione dinamica, utilizzando degli algoritmi greedy, che ad ogni scelta locale massimizzano, il valore o il rapporto $v/w$, possiamo facilmente renderci conto che questi non funzionano, poiché le soluzioni dipendono dalle scelte già prese. 
+
+Utilizziamo lo stesso schema:
+
+\begin{enumerate}
+ \item \textbf{Sottoproblemi}
+ 
+ Consideriamo gli elementi di $A$ in ordine; per ognuno ci sono solo due possibilità: è incluso in $S$ o no? 
+ \begin{enumerate}
+  \item Se $a_n$ è incluso, allora sottraiamo il suo peso da $W$ e ci chiediamo se $a_{n-1}$ è incluso.
+  \item In caso contrario, $W$ rimane lo stesso, e ci chiediamo se $a_{n-1}$ è incluso.
+ \end{enumerate}
+ \item \textbf{Sottoproblemi elementari}: $W = 0$ o $n = 0 \implies$ risultato = 0.
+ \item \textbf{Definizione ricorsiva}: Sia $i$ uguale all'indice dell'ultimo elemento della sequenza $a_1 \hdots a_i$. Sia $j$ uguale al peso massimo rimanente (inizialmente W, poi sottraggo il peso degli elementi inseriti)
+ \[DP(i, j) = \max\begin{cases}
+                   DP(i-1, j) & a_i \notin S\\
+                   v_i + DP(i-1, j-w_i) & a_i \in S
+                  \end{cases}
+\]
+
+\item \textbf{Tabella}: Segue dalla definizione ricorsiva e dai sottoproblemi elementari.
+
+\end{enumerate}
+
+\subsubsection{Problema dello zaino continuo (o frazionario)}
+Il problema dello zaino continuo è una versione del problema in cui si possono prendere frazioni degli elementi di A. \smallskip
+
+In questo caso si può usare un algoritmo greedy, che ordina gli elementi in base a $v/w$ ed inserisce ordinatamente in $S$ più elementi interi possibili, frazionando l'ultimo.
+
+\subsubsection{Complessità di Knapsack}
+La complessità in tempo del problema dello zaino intero è $\Theta(W n)$. Questo è uno dei casi in cui la complessità sembra polinomiale, ma in realtà non lo è. \smallskip
+
+Se $n$ è la dimensione di un insieme, $W$ è un intero; la dimensione in memoria della rappresentazione di un intero è uguale al suo numero di cifre binarie. Questo è uguale a $b = O(\log W)$. \smallskip
+
+La complessità è perciò $O(2^b n)$, che non è un tempo polinomiale.\bigskip
+
+Un limite inferiore alla complessità della versione continua del problema è $O(\log_n)$, poiché si devono ordinare gli elementi, ma è possibile dimostrare che il problema è risolubile in $O(n)$.
+
+\subsection{Scacchiera}
+Il problema della scacchiera consiste nel trovare il numero di cammini che portano dalla casella $(0,0)$ alla $(n-1,n-1)$ di una scacchiera $n \times n$. Le uniche mosse valide sono $\downarrow$ e $\rightarrow$.
+
+Scriviamo nella tabella il numero di cammini fino a quella cella, seguendo la regola:
+\[A[i, j] = A[i, j-1] + A[i-1, j]\]
+e conoscendo il risultato dei sottoproblemi elementari: $A[0, j] = 1$, $A[i, 0] = 1$.
+\begin{center}
+ 
+\begin{tabular}{|c|c|c|c|c|c|}
+ \hline
+ 1&1&1&1&1&1\\
+ \hline
+ 1&2&3&4&5&6\\
+ \hline
+ 1&3&6&10&15&21\\
+ \hline
+ 1&4&10&20&35&56\\
+ \hline
+ 1&5&15&35&70&126\\
+ \hline
+ 1&6&21&56&126&252\\
+ \hline
+\end{tabular}   \bigskip
+
+(heh)
+
+\end{center}
+
+\end{document}

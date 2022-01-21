@@ -1,0 +1,77 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[italian]{babel} 
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc} 
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[margin=25mm]{geometry}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{pgfplots}
+\usetikzlibrary{backgrounds}
+%opening
+\title{Giorno 3}
+\author{Lorenzo Pace}
+
+\theoremstyle{definition}
+\newtheorem{deff}{Def.}[section]
+\newtheorem{lemma}[deff]{Lemma}
+\newtheorem{es}[deff]{Es.}
+\newtheorem{ex}[deff]{Esercizio}
+\newtheorem{teo}[deff]{Teorema}
+\newtheorem{prop}[deff]{Proposizione}
+\lstset
+{ %Formatting for code in appendix
+    language=Pascal,
+    otherkeywords={print, ref}, 
+    basicstyle=\footnotesize,
+    numbers=left,
+    stepnumber=1,
+    showstringspaces=false,
+    tabsize=1,
+    breaklines=true,
+    breakatwhitespace=false,
+}
+\renewcommand{\qedsymbol}{\rule{1ex}{1ex}}
+\setlength{\parindent}{0em}
+\usetikzlibrary{shapes,snakes}
+\begin{document}
+
+\begin{center}
+    \LARGE Giorno del Delirio
+    
+    \large (Programmazione)
+\end{center}
+\section{Record di attivazione}
+\begin{enumerate}
+ \item \textbf{Chi sono?} (nome programma/funzione)
+ \item \textbf{Da dove vengo?} (Catena dinamica)
+ \item \textbf{Come torno a casa?} (Indirizzo di ritorno)
+ \item \textbf{Cosa faccio?} (Risultato della chiamata)
+ \item \textbf{A chi lascio quello che faccio?} (Indirizzo Risultato)
+ \item \textbf{Cosa possiedo?}
+ \begin{itemize}
+  \item Catena statica
+  \item Parametri
+  \item Variabili locali
+ \end{itemize}
+
+\end{enumerate}
+\begin{center}
+\LARGE
+\begin{tikzpicture}[scale=2, framed, every node/.style = {shape=rectangle, align=center, circle, draw=black!60, thick, minimum width=30mm}, level 1/.style={sibling distance=15em}]
+    \node[rectangle, thin, black , fill=lightgray] at (0,0) {Statica};
+    \node[rectangle, thin, white , fill=darkgray] at (0,1) {Ris.};
+    \node[rectangle, thin, black , fill=lightgray] at (0,2) {Ris.\\ Chiamata};
+    \node[rectangle, thin, black , fill=lightgray] at (2,1) {Dinamica};
+    \node[rectangle, thin, black , fill=lightgray] at (2,2) {Nome};
+    \node[rectangle, thin, black , fill=lightgray] at (4,0) {Var. locali};
+    \node[rectangle, thin, black , fill=lightgray] at (4,1) {Parametri};
+    \node[rectangle, thin, white , fill=darkgray] at (4,2) {Ritorno};
+\end{tikzpicture}
+
+\end{center}
+
+\end{document}

@@ -1,0 +1,298 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[italian]{babel} 
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc} 
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[margin=25mm]{geometry}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{pgfplots}
+\usepackage{soul}
+%opening
+\title{Giorno 4}
+\author{Lorenzo Pace}
+
+\theoremstyle{definition}
+\newtheorem{deff}{Def.}[section]
+\newtheorem{lemma}[deff]{Lemma}
+\newtheorem{es}[deff]{Es.}
+\newtheorem{ex}[deff]{Esercizio}
+\newtheorem{teo}[deff]{Teorema}
+\newtheorem{prop}[deff]{Proposizione}
+\lstset
+{ %Formatting for code in appendix
+    language=Pascal,
+    otherkeywords={print, ref, nil}, 
+    basicstyle=\footnotesize,
+    numbers=left,
+    stepnumber=1,
+    showstringspaces=false,
+    tabsize=1,
+    breaklines=true,
+    breakatwhitespace=false,
+}
+\renewcommand{\qedsymbol}{\rule{1ex}{1ex}}
+\setlength{\parindent}{0em}
+\usetikzlibrary{shapes}
+\begin{document}
+
+\begin{center}
+    \LARGE Giorno 4
+\end{center}
+
+\section{Strutture dati}
+Una \textsc{struttura dati} è un metodo per organizzare (logicamente e/o fisicamente) un insieme di dati e facilitare le operazioni su di esso.
+\begin{itemize}
+ \item Una SD si dice \emph{lineare} se i suoi elementi sono organizzati in sequenza (ogni elemento ha al più un precedente ed un successivo). 
+ \item Una SD si dice \emph{omogenea} se i suoi elementi sono tutti dello stesso tipo.
+ \item Una SD può essere ad accesso \emph{diretto} o \emph{sequenziale}; le SD ad accesso diretto permettono l'accesso a qualsiasi elemento in tempo $O(1)$, mentre quelle ad accesso sequenziale non lo permettono.
+\end{itemize}
+
+\subsection{Array, Liste}
+\subsubsection{Array}
+Un array è una SD lineare, omogenea, ad accesso diretto. Solitamente l'organizzazione fisica in memoria rispecchia quella logica, e gli elementi sono memorizzati in posizioni contigue.\smallskip
+
+L'accesso diretto è reso possibile proprio da questa proprietà; Per accedere all'elemento $A[i]$ dell'array, basta accedere all'elemento nell'indirizzo di memoria $\texttt{indirizzo}(A[0]) + i \cdot d$, dove $d$ è la dimensione del tipo di dato elementare che compone l'array.\smallskip
+
+Se l'accesso diretto è un vantaggio degli array, un loro svantaggio è la rigidità della struttura; la dimensione di un array è definita alla dichiarazione e non varia mai.
+
+\subsubsection{Liste concatenate}
+Una lista è una SD lineare, omogenea, ad accesso sequenziale.
+Gli elementi non si trovano, in generale, in posizioni di memoria contigue.\smallskip
+
+Per muoversi tra un elemento e l'altro si utilizza l'attributo \texttt{x.next} di ogni elemento \texttt{x}, che punta al successivo.\smallskip
+
+La lista stessa ha un attributo \texttt{list.head} che punta al primo elemento della lista. Nelle liste \emph{doppie} ogni elemento 
+ha anche un attributo \texttt{x.prev} che punta al precedente.
+Tutti gli elementi hanno anche un attributo \texttt{key} che restituisce il loro valore.
+\smallskip
+
+Seguono le funzioni di ricerca, inserimento, cancellazione di un elemento nella lista.
+\smallskip
+\begin{multicols}{2}
+\textbf{Ricerca di elemento di chiave $k$}
+\begin{quote}
+\begin{lstlisting}[escapeinside={(?}{?)}]
+Search(L, k):
+    new nodo tmp = L.head;
+    while(tmp (?$\neq$?) nil && tmp.key (?$\neq$?) k):
+        tmp = tmp.next;
+    return tmp;
+\end{lstlisting}
+\end{quote}
+Tempo $O(n)$\smallskip
+
+
+\textbf{Inserimento nodo $x$ in testa}
+\begin{quote}
+\begin{lstlisting}[escapeinside={(?}{?)}]
+Insert(L, x):
+    x.next = L.head;
+    L.head = x.next;
+\end{lstlisting}
+\end{quote}
+Tempo $O(1)$\smallskip
+
+
+\begin{quote}
+\textbf{Inserimento nodo $x$ in testa, lista doppia}
+\begin{lstlisting}[escapeinside={(?}{?)}]
+Insert(L, x):
+    if(L.head != nil): L.head.prev = x;
+    x.next = L.head;
+    L.head = x.next;
+\end{lstlisting}
+Tempo $O(1)$
+\begin{itemize}
+ \item[]
+ \item[]
+ \item[]
+\end{itemize}
+
+\end{quote}
+
+
+
+
+\end{multicols}\newpage
+\begin{multicols}{2}
+\textbf{Cancellazione nodo $x$ (lista doppia)}
+\begin{quote}
+\begin{lstlisting}[escapeinside={(?}{?)}]
+Delete(L, x):
+    if(x.prev != nil): x.prev.next = x.next;
+    else: L.head = x.next;
+    if(x.next != nil): x.next.prev = x.prev;
+\end{lstlisting}
+\end{quote}
+Tempo $O(1)$, ma se si deve prima trovare il nodo $x$: tempo $O(n)$
+\bigskip
+\bigskip
+\bigskip
+\bigskip
+\bigskip
+
+
+
+\begin{quote}
+\textbf{Search and Delete $k$ (lista singola)}
+\begin{lstlisting}[escapeinside={(?}{?)}]
+SearchAndDelete(L, k):
+    if(L.head != nil && L.head.key == k): return L.head;
+    else if(L.head == nil): return nil;
+    else:
+        new nodo prev = L.head;
+        new nodo tmp = L.head.next;
+        while(tmp (?$\neq$?) nil && tmp.key (?$\neq$?) k):
+            prev = tmp;
+            tmp = tmp.next;
+        prev.next = tmp.next;
+\end{lstlisting}
+\end{quote}
+Tempo $O(n)$\smallskip
+\end{multicols}
+
+
+\subsection{Pile}
+Una pila (stack) è una SD lineare che prevede due operazioni: 
+\begin{enumerate}
+ \item Push: inserisce un elemento in testa alla pila
+ \item Pop: rimuove un elemento dalla testa della pila e lo restituisce
+\end{enumerate}
+Una struttura di questo tipo si dice FIFO, ``First In First Out''.
+\subsubsection{Implementazione su array}
+Si marca la prima posizione come \texttt{top}, e si inserisce nelle posizioni successive, aggiornando \texttt{top}. Si possono avere errori di overflow (se si eccede la lunghezza dell'array) e di underflow (se si esegue un pop quando l'array è vuoto.)
+\begin{center}
+\begin{tabular}{|c |c|c|c|}
+ \hline
+  $\hdots$ & \footnotesize Top & \footnotesize Push$\rightarrow $& $\hdots$\\
+ \hline
+\end{tabular} \hspace{10mm}\begin{tabular}{|c |c|c|}
+ \hline
+  $\hdots$ & \footnotesize \textst{Top} $\leftarrow $Pop& $\hdots$\\
+ \hline
+\end{tabular}
+\end{center}
+\begin{multicols}{2}
+\begin{quote}
+\textbf{Push}
+\begin{lstlisting}[escapeinside={(?}{?)}]
+Push(A, x):
+    if(A.top < A.length-1):
+        A[A.top + 1] = x;
+        A.top ++;
+    else: error <overflow>
+\end{lstlisting}
+\end{quote}
+\begin{quote}
+\textbf{Pop}
+\begin{lstlisting}[escapeinside={(?}{?)}]
+Pop(A):
+    if(A.top > 0):
+        A.top --;
+        return A[A.top-1];
+    else: error <underflow>
+\end{lstlisting}
+\end{quote}
+\end{multicols}
+\subsubsection{Implementazione su Liste}
+Si usa head come top, il \texttt{push} è l'inserimento in testa, mentre il \texttt{pop} consiste nell'eliminazione in testa.
+\subsection{Code}
+Una coda è una struttura lineare che prevede due operazioni:
+\begin{enumerate}
+ \item Enqueue: Inserisce un elemento dalla testa
+ \item Dequeue: Rimuove un elemento dalla coda
+\end{enumerate}
+Una struttura di questo tipo si dice LIFO: ``Last In First Out''.
+
+\subsubsection{Implementazione su Array}
+\begin{center}
+\begin{tabular}{|c |c|c|c|c|c|}
+ \hline
+  $\hdots$ & \footnotesize Tail & $\hdots$ &\footnotesize Head& \footnotesize Enqueue$\rightarrow $& $\hdots$\\
+ \hline
+\end{tabular} \hspace{10mm}\begin{tabular}{|c|c|c|c|c|}
+ \hline
+  $\hdots$ & \footnotesize Dequeue$\rightarrow $ \st{Tail} & $\hdots$ &\footnotesize Head & $\hdots$\\
+ \hline
+\end{tabular} 
+\end{center}
+\subsubsection{Implementazione su Liste}
+\begin{center}
+   [\footnotesize Tail] $\longrightarrow$ [$\hdots$] $\longrightarrow$ [\footnotesize Head] $\longrightarrow$ \footnotesize [Enqueue$\rightarrow $]\bigskip
+
+  [\footnotesize Dequeue$\rightarrow $ \st{Tail}] $\longrightarrow$ [$\hdots$] $\longrightarrow$[\footnotesize Head]
+\end{center}
+
+Si tengono due riferimenti, uno alla testa ed uno alla coda della lista. L'enqueue corrisponde all'aggiunta di un elemento in coda alla lista, il dequeue corrisponde all'eliminazione in testa (controintuitivamente si ha \textbf{che la testa della coda è nella coda della lista, e la coda della coda è nella testa della lista}, che è uno scioglilingua eccellente che non dirò mai più).
+\subsection{Alberi}
+Un albero è una struttura non lineare. Ogni elemento \texttt{x} di un albero, detto nodo, ha un attributo che punta al nodo ``padre'', \texttt{x.p}, ed un certo numero di attributi che possono puntare ad un nodo ``figlio'', ad un array di nodi ``figli'' o ad una lista di nodi ``figli''.
+
+\begin{itemize}
+ \item Nel caso di alberi \emph{binari}, ossia tali che ogni nodo ha al più due figli, si hanno i due attributi \texttt{x.dx} e \texttt{x.sx}.
+ \item Nel caso generale di alberi \emph{cardinali}, che possono avere al più $n$ figli, si ha un unico attributo che punta ad un array di nodi di lunghezza $n$.
+ \item Nel caso di alberi \emph{ordinali}, che non hanno un limite di figli, si ha un unico attributo che punta ad una lista concatenata di nodi.
+\end{itemize}
+\subsection{Alberi binari}
+\subsubsection{Visite}
+Se si vuole accedere ad uno ad uno a tutti i nodi di un albero binario, ad esempio se li si vuole stampare, si deve usare un algoritmo di \emph{visita}.
+
+I più usati sono: visita \textbf{anticipata}, visita \textbf{posticipata}, visita \textbf{simmetrica}.\smallskip
+\begin{center}
+
+\begin{multicols}{3}
+\textbf{Visita anticipata}
+ 
+\begin{lstlisting}[escapeinside={(?}{?)}, basicstyle=\scriptsize]
+VA(r):
+    if(r == nil) return;
+    print(r.key);
+    if(r.sx != nil) VP(r.sx);
+    if(r.dx != nil) VP(r.dx);
+\end{lstlisting}
+
+
+\textbf{Visita posticipata}
+
+\begin{lstlisting}[escapeinside={(?}{?)}, basicstyle=\scriptsize]
+VP(r):
+    if(r == nil) return;
+    if(r.sx != nil) VP(r.sx);
+    if(r.dx != nil) VP(r.dx);
+    print(r.key);
+\end{lstlisting}
+
+\textbf{Visita simmetrica}
+
+\begin{lstlisting}[escapeinside={(?}{?)}, basicstyle=\scriptsize]
+VS(r):
+    if(r == nil) return;
+    if(r.sx != nil) VP(r.sx);
+    print(r.key);
+    if(r.dx != nil) VP(r.dx);
+   
+\end{lstlisting}
+
+
+\end{multicols}
+\end{center}
+Un'altra visita è la \textbf{visita per livelli}, che viene implementata con una coda d'appoggio:
+\begin{quote}
+\begin{lstlisting}[escapeinside={(?}{?)}]
+VL(d):
+    coda = new coda;
+    enqueue(coda, d);
+    while(!isEmpty(coda)):
+        let nodo = first(coda);
+        if(nodo.sx (?$\neq$?) nil) enqueue(coda, nodo.sx);
+        if(nodo.dx (?$\neq$?) nil) enqueue(coda, nodo.dx);
+        print(dequeue(coda));
+   
+\end{lstlisting}
+\end{quote}
+[notazione binarizzata]
+
+\end{document}

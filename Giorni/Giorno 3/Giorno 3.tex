@@ -1,0 +1,282 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[italian]{babel} 
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc} 
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[margin=25mm]{geometry}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{pgfplots}
+%opening
+\title{Giorno 3}
+\author{Lorenzo Pace}
+
+\theoremstyle{definition}
+\newtheorem{deff}{Def.}[section]
+\newtheorem{lemma}[deff]{Lemma}
+\newtheorem{es}[deff]{Es.}
+\newtheorem{ex}[deff]{Esercizio}
+\newtheorem{teo}[deff]{Teorema}
+\newtheorem{prop}[deff]{Proposizione}
+\lstset
+{ %Formatting for code in appendix
+    language=Pascal,
+    otherkeywords={print, ref}, 
+    basicstyle=\footnotesize,
+    numbers=left,
+    stepnumber=1,
+    showstringspaces=false,
+    tabsize=1,
+    breaklines=true,
+    breakatwhitespace=false,
+}
+\renewcommand{\qedsymbol}{\rule{1ex}{1ex}}
+\setlength{\parindent}{0em}
+\usetikzlibrary{shapes,snakes}
+\begin{document}
+
+\begin{center}
+    \LARGE Giorno 3
+\end{center}
+\section{Heapsort}
+\subsection{Heap}
+Lo \textsc{heap} è una struttura dati composta da un albero binario quasi completo che rispetta la \emph{proprietà dell'heap}.
+\subsubsection{Proprietà dell'heap}
+Vi sono due tipi di heap: il \textsc{max-heap} ed il \textsc{min-heap}; a questi sono associate due diverse proprietà:
+\begin{enumerate}
+    \item \textbf{Proprietà del Max-Heap}: Il valore di ogni nodo non foglia è maggiore di quello dei suoi figli.
+        
+    \item \textbf{Proprietà del Min-Heap}: Il valore di ogni nodo non foglia è minore di quello dei suoi figli. 
+\end{enumerate}
+Di conseguenza, si ha che il massimo (-minimo) di un Max(-Min)-Heap si trova nella sua radice.
+\subsubsection{Gestione dell'heap}
+Uno heap viene memorizzato in un array $A$.\smallskip
+
+Oltre alla proprietà \texttt{length}, $A$ ha anche una proprietà \texttt{heapsize}, che rappresenta la lunghezza della porzione di array da considerarsi heap.\smallskip 
+
+Dato un indice $i$, associato al nodo $A[i]$, si usano le seguenti funzioni per accedere al parent e ad i figli:
+\begin{multicols}{3}\begin{center}
+\texttt{Parent(i) = $\bigg\lfloor \dfrac{i}{2} \bigg\rfloor$;}
+\end{center}
+\begin{center}
+\texttt{Left(i) = 2i;}
+\end{center}
+\begin{center}
+\texttt{Right(i) = 2i+1;}
+\end{center}
+\end{multicols}
+
+Un'importante proprietà di questa rappresentazione è che i nodi in $A \bigg[\bigg\lceil \dfrac{\texttt{A.heapsize}}{2} \bigg\rceil  .. \texttt{A.heapsize}\bigg]$ sono tutti foglie, e che il massimo/minimo di un Max/Min-Heap si trova in $A[1]$;
+
+\subsubsection{Funzioni dell'heap}
+Le funzioni legate agli heap che vedremo sono le seguenti (le vedremo sui max-heap):
+
+\begin{center}
+\def\arraystretch{1.5}% 
+ \begin{tabular}{|c|c|}
+ \hline
+ \textbf{Max-Heapify(A, i)} & Assume che i figli di $A[i]$ siano Max-Heap, rende $i$ radice di uno heap.\\
+ \hline
+ \textbf{Build-Max-Heap(A)} & Prende in input un array non ordinato e lo rende uno heap.\\
+ \hline
+ \textbf{Heapsort(A)} & Heapifica A; Ordina A estraendo ripetutamente il massimo dall'heap.\\
+ \hline
+ \textbf{Heap-Maximum(A)}& \emph{(Funzioni relative alle code di priorità)} - restituisce $A[1]$\\ 
+ \textbf{Heap-Extract-Max(A)}& Estrae il massimo dall'heap e ripristina la proprietà dell'heap\\
+ \textbf{Heap-Increase-Key(A, i, k)}& Aumenta il valore di un nodo e ripristina la proprietà dell'heap\\
+ \hline
+\end{tabular}
+\end{center}
+\newpage
+\subsubsection{Mantenere la proprietà dell'heap}
+Siano $A[Left(i)]$, $A[Right(i)]$ radici di due heap. \smallskip
+
+La procedura \textsc{Max-Heapify} controlla se $A[i]$ è maggiore dei suoi due figli, e se non lo è scambia $A[i]$ con il valore del massimo tra i suoi figli, e si chiama ricorsivamente su di esso.
+\begin{quote}
+\begin{lstlisting}[escapeinside={(?}{?)}]
+Max-Heapify(A, i):
+    if(Left(i) (? $\leq$ ?) A.heapsize && A[Left(i)] > i): 
+        massimo = Left(i);
+        
+    if(Right(i) (? $\leq$ ?) A.heapsize && A[Right(i)] > i): 
+        massimo = Right(i);
+        
+    if(A[i] (?$\neq$?) A[massimo]) 
+        scambia A[i], A[massimo];
+        Max-Heapify(A, massimo);
+    
+\end{lstlisting}
+\end{quote}
+\textbf{Costo di Max-Heapify}:
+Un sottoalbero di un heap ha al più dimensione $\dfrac{2n}{3}$ ($\star$); la ricorrenza che definisce il costo della procedura è quindi:
+\[T(n) < T\bigg(\dfrac{2n}{3}\bigg) + O(1)\]
+Per il Master Theorem, $n^{log_{3/2} 1} = 0 = \Theta(1)$ implica che (caso 2) $T(n) = O(\log n) $.
+\smallskip
+
+\begin{proof} ($\star$)
+\begin{multicols}{2}
+Sia $i$ la radice dell'heap $A$. Sia $B$ il sottoalbero di dimensione massima che ha per radice un figlio di $i$. Il rapporto $\dfrac{\dim(B)}{\dim(A)}$ è massimo quando l'ultimo livello è pieno a metà.\smallskip
+
+In questo caso tale rapporto, espresso rispetto all'altezza $h$ di $B$, è uguale a $\dfrac{2^{h+1} -1}{2^{h+1} + 2^h - 1}$. 
+\begin{center}
+\begin{tikzpicture}[level distance=2em, every node/.style = {shape=rectangle, align=center, circle, draw=black!60, thick, minimum size=2mm}, level 1/.style={sibling distance=5em},
+  level 2/.style={sibling distance=3em},
+  level 3/.style={sibling distance=15pt},
+  level 4/.style={sibling distance=1em}]]
+  \node (Root) {}
+            child {node{}
+                child {node{}
+                    child{node{}}
+                    child{node{}}}
+                child {node{}
+                    child{node{}}
+                    child{node{}}}}
+            child {node{}
+                child{node{}}
+                child{node{}}};
+
+\end{tikzpicture}
+
+\end{center}
+
+\end{multicols}
+
+Tale rapporto è sempre $< \dfrac{2}{3}$: infatti $\lim\limits_{h \to +\infty} \dfrac{2^{h+1} -1}{2^{h+1} + 2^h - 1} = \lim\limits_{h \to +\infty} \dfrac{2^{h}(2 -\frac{1}{2^h})}{2^{h}(2 + 1 - \frac{1}{2^h})} = \dfrac{2}{3}^-$
+\end{proof}
+
+\subsubsection{Costruire uno heap}
+La procedura \textsc{Build-Max-Heap} costruisce uno heap a partire da un array non ordinato, applicando ripetutamente \textsc{Max-Heapify}.
+\begin{quote}
+\begin{lstlisting}[escapeinside={(?}{?)}]
+Build-Max-Heap(A):
+    for(i = (?$\lfloor A.heapsize/2 \rfloor$?) downto 1):
+        Max-Heapify(A, i);
+    
+\end{lstlisting}
+\end{quote}
+
+\textbf{Costo di Build-Max-Heap}:
+    Una prima analisi potrebbe portare ad individuare un limite superiore di $n \log n$, dato che Max-Heapify costa $\log n$ ed il ciclo è ripetuto $n/2$ volte. \smallskip
+    
+    Questo limite superiore è corretto, ma non è stretto; una analisi più accurata viene dall'osservazione di alcune proprietà:
+    
+    \begin{enumerate}
+        \item Il costo di Max-Heapify è $O(h)$
+        \item Il numero di nodi di altezza $h$ è sempre al più $\bigg \lceil \dfrac{n}{2^{h+1}}\bigg\rceil$.
+    \end{enumerate}
+    
+    \begin{proof}
+        \begin{enumerate}
+         \item[]
+         \item Uno heap è un albero binario quasi completo; tutti i livelli di profondità $i$ tranne l'ultimo hanno esattamente $2^i$ nodi. Considerando che l'ultimo ha un numero di nodi compreso tra $1$ e $2^h$, si ha che $2^{h} \leq n \leq 2^{h+1} - 1$. Quindi $h \leq \log n \leq \log(2^{h+1} - 1) \leq h+1$, ossia $h = \lfloor \log n \rfloor$.\smallskip
+         
+         Ciò implica che $O(h) = O(\log(n))$
+         \item Sia $h$ l'altezza dell'heap. Il numero massimo di nodi al livello di altezza $i$ è $2^{h-i}$.
+         
+         La dimensione massima di uno heap è $2^{h+1}-1$. Quindi:
+         \[2^{h-1} \leq \bigg\lceil \dfrac{2^{h+1}-1}{2^{i+1}} \bigg\rceil = \bigg\lceil 2^{h+i} - \dfrac{1}{2^{i+1}} \bigg\rceil = 2^{h-1}\]
+         
+         
+         \end{enumerate}
+    
+    \end{proof}
+
+    Quindi, per heapificare ogni nodo di ogni livello si impiega tempo inferiore a \[\sum_{i = 0}^h \bigg \lceil \dfrac{n}{2^{i+1}} \bigg \rceil O(i) = nO\bigg(\sum_{i = 0}^{\lfloor \log n \rfloor} \dfrac{i}{2^{i+1}} \bigg) = nO\bigg(\sum_{i = 0}^{\lfloor \log n \rfloor} \dfrac{i}{2^{i}} \bigg)\]
+    
+    Sappiamo che $\sum\limits_{i = 0}^{+\infty} x^i = \dfrac{1}{1-x}$, per $|x|<1$. Deriviamo entrambi i lati rispetto a $x$ e moltiplichiamoli per $x$:
+    \[\text{(CLRS A.8) }\sum_{i = 0}^{+\infty} i x^i = \dfrac{x}{(1-x)^2}\]
+    Sia $x = 1/2$: 
+    \[nO\bigg(\sum_{i = 0}^{\lfloor \log n \rfloor} \dfrac{i}{2^{i}} \bigg) \leq \dfrac{\frac{1}{2}}{(\frac{1}{2})^2}n = O(n)\]
+    Quindi un limite superiore più stretto alla complessità di Build-Max-Heap è $O(n)$.
+\subsection{Heapsort}
+Sappiamo che il massimo di un array max-heapificato sta in $A[1]$; Possiamo usare questa proprietà per ordinare l'array.
+
+\begin{quote}
+ \begin{lstlisting}
+Heapsort(A):
+    A.heapsize = A.length;
+    Build-Max-Heap(A);
+    for(i = A.length downto 2):
+        Scambia A[1], A[i];
+        A.heapsize--;
+        Max-Heapify(A, 1);
+ \end{lstlisting}
+\end{quote}
+Costo: $O(n \log n)$
+    
+\subsection{Code di priorità}
+Una coda di priorità è una struttura dati simile ad una coda, ma tale che gli elementi siano inseriti e rimossi in base ad una \emph{priorità}. \smallskip
+
+Nelle code di max-priorità, ad esempio, si inserisce ``in testa'' l'elemento massimo; alcune delle operazioni associate alle code di priorità sono: 
+\begin{itemize}
+ \item Insert(A, k): inserisce nella coda di priorità;
+ \item Maximum(A): restituisce l'elemento massimo;
+ \item Extract-Max(A): estrae il massimo;
+ \item Increase-key: aumenta il valore di una chiave.
+\end{itemize}
+
+Si potrebbe usare un array, ordinato o meno, ma il costo della ricerca del massimo e dell'ordinamento sono considerevoli, perciò una scelta migliore è usare un heap di massimo.
+
+\begin{quote}
+ \begin{lstlisting}
+Heap-Maximum(A): return A[1]
+ \end{lstlisting}
+\end{quote}
+
+\begin{quote}
+ \begin{lstlisting}
+Heap-Extract-Maximum(A):
+    if(A.heapsize < 1): error <underflow>
+    maximum = A[1];
+    A[1] = A[A.heapsize];
+    A.heapsize--;
+    Max-Heapify(A, 1);
+    return maximum;
+ \end{lstlisting}
+\end{quote}
+
+\begin{quote}
+ \begin{lstlisting}
+Heap-Increase-Key(A, i, k):
+    if(k < A[i]) error <k minore del valore>;
+    A[i] = k;
+    j = i;
+    while(i > 1 && A[j] > A[parent(j)]):
+        scambia A[j], A[parent(j);
+        j = parent(j);
+ \end{lstlisting}
+\end{quote}
+\begin{quote}
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+Heap-Insert(A, k):
+    A.heapsize++;
+    A[A.heapsize] = (?$-\infty$?);
+    Heap-Increase-Key(A, A.heapsize, k);
+ \end{lstlisting}
+\end{quote}
+    
+\section{Ordinamento in tempo lineare}    
+\subsection{Counting Sort}
+Sia $A$ un array con elementi in $[0, k]$. Counting Sort conta gli elementi minori o uguali ad ogni elemento di $A$. Il numero di elementi minori o uguali ad $A[i]$ è uguale ad $i$.
+
+\begin{quote}
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+CountingSort(A, B, k):
+    C = new array [0..k];
+    for(i = 0 to k): C[i] = 0;
+    for(i = 1 to A.length):
+        C[A[i]]++;
+    for(i = k downto 1):
+        C[i] += C[i-1];
+    for(i = A.length downto 1):
+        B[C[A[i]]] = A[i];
+        C[A[i]]--;
+ \end{lstlisting}
+\end{quote}
+
+[radix + correttezza oc]
+    
+\end{document}

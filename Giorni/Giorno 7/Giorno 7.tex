@@ -1,0 +1,518 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[italian]{babel} 
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc} 
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[margin=25mm]{geometry}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{pgfplots}
+\usepackage{soul}
+\usepackage{stmaryrd}
+
+%opening
+\title{Giorno 7}
+\author{Lorenzo Pace}
+
+\theoremstyle{definition}
+\newtheorem{deff}{Def.}[subsubsection]
+\newtheorem{lemma}[deff]{Lemma}
+\newtheorem{es}[deff]{Es.}
+\newtheorem{ex}[deff]{Esercizio}
+\newtheorem{teo}[deff]{Teorema}
+\newtheorem{prop}[deff]{Proposizione}
+\lstset
+{ %Formatting for code in appendix
+    language=Pascal,
+    otherkeywords={print, ref, nil, return, elif}, 
+    basicstyle=\footnotesize,
+    numbers=left,
+    stepnumber=1,
+    showstringspaces=false,
+    tabsize=1,
+    breaklines=true,
+    breakatwhitespace=false,
+}
+\renewcommand{\qedsymbol}{\rule{1ex}{1ex}}
+\setlength{\parindent}{0em}
+\usetikzlibrary{shapes}
+\usetikzlibrary{shapes.misc}
+
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\rationals}{\mathbb{Q}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+
+\tikzset{cross/.style={cross out, draw=black, minimum size=2*(#1-\pgflinewidth), inner sep=0pt, outer sep=0pt},
+%default radius will be 1pt. 
+cross/.default={1pt}}
+
+
+\begin{document}
+
+\begin{center}
+    \LARGE Giorno 7
+\end{center}
+\section{Grafi}
+Un grafo è una coppia $(V, E)$, dove $V$ è un insieme di \emph{nodi} o \emph{vertici} ed $E \subseteq V \times V$ è un insieme di \emph{archi}.
+\subsection{Rappresentazione dei grafi in memoria}
+I due principali metodi per rappresentare i grafi in memoria sono le liste di adiacenza e le matrici di adiacenza. Le prime sono un metodo più comune, poiché occupano meno spazio in memoria.
+\begin{multicols}{3}
+ 
+\begin{center}
+
+\begin{tikzpicture}[level distance=2.4em, every node/.style = {shape=rectangle, align=center, circle, draw=black, thin, minimum size=2mm}]]
+\node (a) at (0,2)  {a};
+\node (b) at (2,2)  {b};
+\node (c) at (0,0)  {c};
+\node (d) at (2,0)  {d};
+\node (e) at (4,0)  {e};
+\draw   (a) edge[->] (b)
+        (a) edge[->] (d)
+        (b) edge[->] (e)
+        (b) edge[->] (c)
+        (c) edge[->] (d);
+\end{tikzpicture}
+
+Grafo
+\end{center}
+\begin{center}
+ 
+\begin{tikzpicture}[level distance=2.4em, every node/.style = {shape=rectangle, align=center, rectangle, draw=black, thin, minimum size=2mm}]]
+\node (a) at (0,3.4)  {a};
+\node (b) at (0,2.8)  {b};
+\node (c) at (0,2.2)  {c};
+\node (d) at (0,1.6)  {d};
+\node (e) at (0,1)  {e};
+\node (bb) at (1, 3.4) {b};
+\node (dd) at (2, 3.4) {d};
+\node (cc) at (1, 2.8) {c};
+\node (ee) at (2, 2.8) {e};
+\node (ddd) at (1, 2.2) {d};
+\draw   (a) edge[->] (bb)
+        (bb) edge[->] (dd)
+        (b) edge[->] (cc)
+        (cc) edge[->] (ee)
+        (c) edge[->] (ddd);
+\end{tikzpicture}
+
+Lista di adiacenza
+\end{center}
+
+\begin{center}
+    \begin{tabular}{|c|c|c|c|c|c|}
+        \hline
+        &a&b&c&d&e\\
+        \hline
+        a&0&1&1&0&0\\
+        \hline
+        b&0&0&1&0&1\\
+        \hline
+        c&0&0&0&1&0\\
+        \hline
+        d&0&0&0&0&0\\
+        \hline
+        e&0&0&0&0&0\\
+        \hline
+    \end{tabular}\smallskip
+    
+Matrice di adiacenza
+\end{center}
+
+\end{multicols}
+\begin{enumerate}
+ \item Una lista di adiacenza ha complessità in spazio $\Theta(|V| + |E|)$ 
+ 
+ \begin{itemize}
+  \item 
+ $|V|$ è la cardinalità dell'array che contiene i riferimenti alle liste d'adiacenza;
+ \item $\sum\limits_{v \in V} \text{gradoInUscita}(v)$, che è uguale a $|E|$ per l'HandShaking Lemma, è la somma delle cardinalità delle liste.
+ \end{itemize}
+ 
+\item Una matrice di adiacenza ha ovviamente complessità in spazio $\Theta(|V|^2)$
+
+\end{enumerate}
+
+
+\section{Visite di grafi}
+Una visita di un grafo è una procedura che, partendo da un nodo $s$ detto \emph{sorgente} accede a tutti i nodi del grafo (o a tutti quelli raggiungibili da $s$).
+\subsection{Visita per ampiezza - BFS}
+La BFS (breadth-first search) è una visita che accede a tutti i nodi raggiungibili dalla sorgente.
+
+\begin{deff}
+    La distanza tra due nodi $u$ e $v$ è $\delta(u, v)$, uguale alla lunghezza del cammino minimo (cammino che attraversa il numero minimo di archi) tra i due nodi.
+\end{deff}
+
+La caratteristica della BFS è che \textbf{l'ordine di visita dei nodi è dato dalla loro distanza da s}; 
+
+Si visitano prima tutti i nodi v tali che  $\delta(s, v) = 0$ ($\implies v=s$), poi quelli a distanza $1$, poi $2$ e così via.
+
+\begin{center}
+
+\begin{tikzpicture}[level distance=2.4em, every node/.style = {shape=rectangle, align=center, circle, draw=black, thin, minimum size=2mm}]]
+\node (a) at (0,2)  [fill=lightgray]{s};
+\node (b) at (2,2)  {b};
+\node (c) at (0,0)  {c};
+\node (d) at (2,0)  {d};
+\node (e) at (4,0)  {e};
+\draw   (a) edge[->] (b)
+        (a) edge[->] (d)
+        (b) edge[->] (e)
+        (b) edge[->] (c)
+        (c) edge[->] (d);
+\end{tikzpicture}
+
+Assumendo di dare, a parità di distanza da $s$, priorità di visita ai nodi in ordine alfabetico, la BFS visita i nodi di questo grafo nell'ordine:\smallskip
+
+$\underset{\underset{\text{\scriptsize dist: }}{}}{}\underbrace{\text{s}}_{0} \underbrace{\text{b d} }_{1} \underbrace{\text{c e}}_3$
+
+\end{center}
+\newpage
+\subsubsection{Implementazione della BFS}
+Ci sono varie possibili implementazioni, ma tutte hanno \textbf{un metodo per evitare di visitare archi già visitati}. Si noti, nell'esempio sopra, come il vertice $d$, che ha grado in entrata $2$, è visitato solo una volta. 
+
+Questo risultato si può ottenere utilizzando un dizionario che tiene traccia di quali elementi sono già stati raggiunti, oppure si può utilizzare il \emph{metodo da manuale}, che utilizza una colorazione dei nodi per determinare se questi sono stati già visitati o meno.\smallskip
+
+Ovviamente, dato che vogliamo complicarci la vita senza motivo, utilizzeremo il secondo di questi.
+
+\subsubsection{Colorazione dei nodi}
+Un nodo può essere \emph{bianco}, \emph{grigio} o \emph{nero}.
+
+I nodi \emph{bianchi} non sono ancora stati scoperti dalla visita, quelli \emph{grigi} sono già stati scoperti ma non sono ancora stati scoperti i loro eventuali discendenti, mentre i nodi \emph{neri} sono quelli di cui sono stati scoperti gli eventuali discendenti.\smallskip
+
+Non è necessario distinguere tra nodi grigi e neri, ma è utile$^{\text{\tiny -citation needed}}$ mantenere la distinzione.\smallskip
+
+Ad ogni nodo $v$ si assegnano gli attributi $v.color$, $v.d$ (distanza da $s$), $v.p$ (puntatore al nodo da cui è scoperto $v$).
+\begin{multicols}{2}
+ 
+\begin{quote}
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+BFS(g, s):
+    Q = new coda;
+    for(v (?$\in$?) g.V):
+        v.color = white;
+        v.d = (?$\infty$?);
+        v.p = nil;
+    s.d = 0;
+    s.color = gray;
+    enqueue(Q, s);
+    while(Q (?$\neq \emptyset$?)):
+        y = dequeue(Q);
+        for(u (?$\in$?) Adj[y]):
+            if(u.color (?==?) white):
+                u.d = y.d + 1;
+                u.p = y;
+                u.color = gray;
+                enqueue(Q, u);
+        y.color = black;
+ \end{lstlisting}
+
+\end{quote}
+\subsubsection{Albero BF}
+La sequenza di scoperte della BFS può essere rappresentata in un albero, detto albero BF. Questo albero è tale che $v.p$ sia il padre di $p$, per ogni $v$.\begin{center}
+                                                                                                                                                            
+\begin{tikzpicture}[scale = .5, level distance=2.4em, every node/.style = {shape=rectangle, align=center, circle, draw=black, thin, minimum size=2mm}]]
+\node (a) at (0,2)  [fill=lightgray]{s};
+\node (b) at (2,2)  {b};
+\node (c) at (0,0)  {c};
+\node (d) at (2,0)  {d};
+\node (e) at (4,0)  {e};
+\draw   (a) edge[->] (b)
+        (a) edge[->] (d)
+        (b) edge[->] (e)
+        (b) edge[->] (c)
+        (c) edge[->] (d);
+\end{tikzpicture}
+\hspace{.5cm}
+\begin{tikzpicture}[level distance=2em, every node/.style = {shape=rectangle, align=center, circle, draw=black, thin, minimum size=2mm}]]
+\node[fill=lightgray]{s}
+    child{node{b}
+        child{node{c}}
+        child{node{e}}}
+    child{node{d}};
+\end{tikzpicture}
+\small
+
+Dato il grafo a sinistra, l'albero BF associato è quello a destra.                                                                                                                                                        \end{center}
+\end{multicols}
+
+\subsubsection{Cammini minimi}
+Una proprietà importante della BFS è che per ogni $v$ raggiungibile da $s$, risalendo i riferimenti al nodo scopritore (``padre''): $v.p$, $v.p.p \hdots s$ si ottiene un cammino minimo tra $v$ e $s$. 
+
+Questo si dimostra per induzione sulla distanza da $s$.\smallskip
+
+Per stampare un cammino minimo tra $s$ e $v$, dopo aver eseguito la BFS, si usa la seguente procedura:
+
+\begin{quote}
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+PrintPath(v, s):
+    u = v;
+    L = new lista;
+    while(u.p (?$\neq$?) nil):
+        insert(L, u);
+        u = u.p;
+    return L;
+ \end{lstlisting}
+
+\end{quote}
+
+\subsubsection{Complessità}
+\begin{itemize}
+ \item L'inizializzazione della BFS ha costo $\Theta(|V|)$ 
+ \item Ogni nodo è inserito e rimosso nella e dalla coda al più una volta, quindi il while viene eseguito al più $|V|$ volte. In ognuna di queste iterazioni si ispeziona ogni elemento della lista di adiacenza di $y$, quindi sempre per l'HandShaking lemma il costo del while è $O(|E)|$
+\end{itemize}
+Quindi BFS ha complessità in tempo $O(|V| + |E|)$, e se il grafo è connesso $\Theta(|V| + |E|)$
+
+\newpage
+\subsubsection{Correttezza della BFS}
+
+Si osservi la seguente proprietà:
+\begin{prop}\label{propDiPrima}
+    Per ogni arco $(u, v) \in E$ vale che $\delta(s, v) \leq \delta(s, u) + 1$ 
+\end{prop}
+\begin{center}
+
+\begin{tikzpicture}[scale = .5, level distance=2.4em, every node/.style = {shape=rectangle, align=center, circle, draw=black, thin, minimum size=2mm}]]
+\node (a) at (0,2)  [fill=lightgray]{s};
+\node (b) at (2,2)  {b};
+\node (c) at (0,0)  {c};
+\node (d) at (2,0)  {d};
+\node (e) at (4,0)  {e};
+\draw   (a) edge[thick,->] (b)
+        (a) edge[thick, ->] (d)
+        (b) edge[thick, darkgray, ->] (e)
+        (b) edge[thick, ->] (d)
+        (c) edge[->] (d);
+\end{tikzpicture}
+ \small
+ 
+ Arco $(b, d)$: $1 = \delta(s, d) \leq \delta(s, b) + 1 = 2$
+ 
+ Arco $(b, e)$: $2 = \delta(s, e) \leq \delta(s, b) + 1 = 2$
+ 
+\end{center}
+
+Si dimostra anzitutto un limite superiore:
+
+\begin{teo}
+    Al termine di BFS(g, s), per ogni vertice $v \in g.V$ vale che $v.d \geq \delta(s, v)$
+\end{teo}
+
+
+
+\begin{proof}
+ Induzione sul numero di enqueue:
+ 
+ \emph{Hp.} $v.d \geq \delta(s, v)$ per ogni $v \in V$.
+ \begin{enumerate}
+  \item Dopo la prima operazione enqueue, l'Hp. è vera. 
+  
+  \[s.d = 0 = \delta(s,s) \hspace{8mm}\forall v \in V : v.d = \infty \geq \delta(s, v)\]
+  \item Sia $v$ un vertice bianco scoperto a partire da $u$. 
+  
+  Hp: $u.d \geq \delta(s, u)$.
+  
+  L'algoritmo pone $v.d = u.d + 1$.
+  
+  \[v.d = u.d + 1 \underbrace{\geq}_{Hp}\delta(s, u) + 1 \underbrace{\geq}_{\text{\ref{propDiPrima}}} \delta(s, v)\]
+ \end{enumerate}
+
+\end{proof}
+[...]
+
+\newpage
+\subsection{Visita in profondità - DFS}
+La DFS (depth-first search) è una visita che raggiunge tutti i nodi del grafo. Una descrizione informale di DFS è:\bigskip
+
+
+DFS($g$):
+\begin{enumerate}
+ \item[$\circ$] Per ogni nodo $v\in g.V$  non già scoperto esegui \textsc{DFS-Visit}($v$);
+ \item[$\circ$] \textsc{DFS-Visit}($s$):
+ \begin{enumerate}
+ \item Scopri $s$;
+ \item Per ogni nodo $u$ di $Adj[s]$:
+ 
+ \hspace{1cm}Se $u$ non è già stato scoperto esegui \textsc{DFS-Visit}($u$);
+ \end{enumerate}
+
+\end{enumerate}
+
+
+\subsubsection{Implementazione della DFS}
+Per modellare l'essere o meno scoperto di un nodo useremo di nuovo i colori.
+
+Gli attributi dei nodi sono, per ogni $v \in V$:
+\begin{itemize}
+ \item $v.color$;
+ \item $v.p$, che punta al nodo che ha scoperto $v$;
+ \item $v.d$, da non confondersi con la distanza della BFS, è il \emph{tempo} di scoperta del nodo $v$;
+ \item $v.f$ è il tempo di fine visita del nodo $v$.
+\end{itemize}
+Si usano i \textbf{tempi} di inizio e fine visita per formulare alcune proprietà della DFS. Come tempo si usa una variabile globale \texttt{time} inizializzata a zero, che viene incrementata prima di ogni scoperta e di ogni fine visita.
+\begin{multicols}{2}
+ 
+\begin{quote}
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+DFS-Visit(s):
+    time++;
+    s.d = time;
+    s.color = gray;
+    for(u (?$\in$?) Adj[s]):
+        if(u.color (?==?) white): 
+            u.p = s;
+            DFS-Visit(u);
+    time++;
+    s.f = time;
+    s.color = black;
+        
+\end{lstlisting}
+\end{quote}
+\begin{quote}
+ \begin{lstlisting}[escapeinside={(?}{?)}]
+DFS(g):
+    for(v (?$\in$?) g.V):
+        v.color = white;
+        v.p = nil;
+    for(v (?$\in$?) g.V):
+        if(v.color (?==?) white): 
+            DFS-Visit(v);
+        
+\end{lstlisting}
+\end{quote}
+
+Costo di DFS-Visit: $O(\text{gradoInUscita}(s))$
+
+Costo di DFS: $O(|V| + |E|)$
+
+
+\end{multicols}
+Come per la BFS si poteva definire un albero BF, per la DFS si può definire analogamente un albero DF.
+\subsubsection{Proprietà della DFS}
+\begin{teo}[Delle Parentesi] Dati due nodi $u, v$, siano gli intervalli $I_u = [u.d, u.f]$, $I_v = [v.d, v.f]$. Si può verificare solo uno tra tre casi:
+\begin{enumerate}
+ \item $I_u \subset I_v$, in tal caso $u$ è discendente di $v$ nell'albero DF.
+ \item $I_v \subset I_u$, in tal caso $v$ è discendente di $u$ nell'albero DF.
+ \item I due intervali sono disgiunti, in tal caso i due nodi non sono ``parenti''.
+\end{enumerate}
+\begin{proof}
+    Supponiamo \emph{w.l.o.g.} che $u.d<v.d$. Ci sono due casi:
+    \begin{enumerate}
+     \item Se $v$ è scoperto prima della fine della visita di $u$, quindi $I_v \subset I_u$, allora $u$ era grigio durante la scoperta di $v$, e tutti i nodi scoperti mentre $u$ era grigio ne sono discendenti.
+     \item Se $v$ è stato scoperto dopo la fine della visita di $u$, cioè se i due intervalli sono disgiunti, allora $u$ era nero, quindi $v$ non può esserne discendente. 
+    \end{enumerate}
+
+\end{proof}
+
+\end{teo}
+\newpage
+\begin{teo}[Del Cammino Bianco]
+Dati due nodi $u$ e $v$: $v$ è discendente di $u$ se e solo se al momento della scoperta di $u$ esiste un cammino di nodi bianchi tra $u$ e $v$.
+\begin{proof}
+    \begin{enumerate}
+    \item[]
+    \item [$(\Longrightarrow)$] Se $v$ è discendente di $u$:
+    \begin{itemize}
+     \item $v=u \implies v \rightsquigarrow u$ contiene solo $v$, che è bianco nel momento in cui è scoperto.
+     \item $v \neq u$, $v$ generico discendente di $u$, si ha $I_v \subset I_u \implies u.d < v.d \implies$ $v$ è bianco al tempo $u.d$.
+    \end{itemize}
+
+    \item [$(\Longleftarrow)$] Esiste un cammino $B$ di nodi bianchi tra $u$ e $v$. 
+    
+    Assumiamo per assurdo che $v$ sia il primo vertice sul cammino $B$ non discendente di $u$. 
+    
+    Sia $w$ il predecessore di $v$, sia quindi $w$ discendente di $u$. Allora $I_w \subset I_u$, cioè $u.d < w.d < w.f < u.f$
+    
+     Inoltre $v \in Adj[w]$, quindi la visita di $v$ finisce prima di quella di $w$. Quindi si ha che:
+    \[u.d < w.d < v.f < w.f < u.f\]
+    Per il teorema delle parentesi due intervalli non possono avere elementi comuni senza essere l'uno incluso nell'altro, perciò si ha che $I_v \subset I_u$, quindi $v$ è discendente di $u$. $(\lightning)$
+    \end{enumerate}
+
+\end{proof}
+
+\end{teo}
+
+\subsection{Classificazione degli archi}
+Un arco di un grafo può essere:
+\begin{enumerate}
+ \item \textbf{Arco d'albero}, se compare nell'albero DF;
+ \item \textbf{Arco all'indietro}, se collega un nodo dell'albero DF ad un suo predecessore;
+ \item \textbf{Arco in avanti}, se collega un nodo dell'albero DF ad un suo successore;
+ \item \textbf{Arco trasversale}, se collega un nodo dell'albero DF con un altro che non ne è né predecessore né successore.
+\end{enumerate}
+
+In particolare, se facendo la DFS si incontra un nodo \emph{grigio}, si ha un arco all'indietro, se se ne incontra uno \emph{bianco} si ha un arco d'albero, se se ne incontra uno \emph{nero} si può avere sia un arco in avanti che uno trasversale.
+
+\begin{teo}
+    In un grafo non orientato ci sono solo archi d'albero ed archi all'indietro.
+\end{teo}
+
+\begin{proof}
+    Quando si scopre un nuovo nodo, può essere già stato esplorato o meno. Se è stato esplorato allora si ha un arco all'indietro, se no si ha un arco d'albero.
+\end{proof}
+
+
+\begin{teo}[Caratterizzazione dei grafi ciclici]
+    Un grafo è ciclico se e solo se presenta archi all'indietro.
+\end{teo}
+\begin{proof}
+    \begin{enumerate}
+    \item[]
+    \item [$(\Longleftarrow)$] Se esiste un arco che porta da un nodo $v$ ad un suo predecessore nel'albero DF, allora c'è banalmente un ciclo.
+    \item [$(\Longrightarrow)$] Esiste almeno un ciclo. 
+    \begin{itemize}
+     \item Se il grafo non è orientato, allora l'arco che chiude il ciclo non può essere d'albero, quindi è necessariamente all'indietro.
+     \item 
+            
+Se il grafo è orientato:
+     
+     Sia $v$ il primo vertice del ciclo ad essere stato scoperto (a diventare grigio). Sia $u$ il vertice che precede $v$ nel ciclo. Al tempo $v.d$, tutti i vertici del ciclo sono bianchi.
+     
+     Per il teorema del cammino bianco, $u$ è discendente di $v$, quindi l'arco $(u, v)$ è un arco all'indietro.
+     \begin{center}
+     \begin{tikzpicture}[scale = .5, level distance=2.4em, every node/.style = {shape=rectangle, align=center, circle, draw=black, thin, minimum size=6mm}]]
+\node (a) at (0,2)  {u};
+\node (b) at (2,2)  [fill=lightgray]{v};
+\node (c) at (4,2)  {};
+\node (d) at (6,2)  {};
+\node (e) at (6,0) {};
+\node (f) at (4,0) {};
+\node (g) at (2,0) {};
+\node (h) at (0,0) {};
+\draw   (a) edge[->] (b)
+        (b) edge[->] (c)
+        (c) edge[->] (d)
+        (d) edge[->] (e)
+        (e) edge[->] (f)
+        (f) edge[->] (g)
+        (g) edge[->] (h)
+        (h) edge[->] (a);
+\end{tikzpicture}
+     \end{center}
+
+
+    \end{itemize}
+
+    
+    \end{enumerate}
+\end{proof}
+\newpage
+\subsubsection{Ordinamento topologico}
+Se si applica DFS ad un DAG e inseriscono i nodi in una lista alla fine della loro visita si ottiene un ordinamento topologico, ossia un ordinamento dei nodi tale che $u\prec v$ solo se non esiste l'arco $(v, u)$.
+
+\begin{proof}
+    Dobbiamo dimostrare che per ogni $(u, v) \in E$ l'arco $(u, v)$ rispetta l'ordinamento, ossia che l'elemento $u$ è inserito dopo (=viene prima) nella lista rispetto all'elemento $v$, ossia che $v.f < u.f$:
+    \begin{enumerate}
+     \item $(u, v)$ può essere un arco d'albero, in tal caso $v$ è successore di $u$, quindi $v.f<u.f$. 
+     \item $(u, v)$ può essere un arco in avanti; anche in tal caso $v$ è successore di $u$, quindi $v.f<u.f$. 
+     \item $(u, v)$ non può essere un arco all'indietro poiché il grafo è aciclico!
+    \end{enumerate}
+Quindi la proposizione è dimostrata.
+\end{proof}
+
+\end{document}
+
+

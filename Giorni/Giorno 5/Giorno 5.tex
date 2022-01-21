@@ -1,0 +1,281 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[italian]{babel} 
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc} 
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[margin=25mm]{geometry}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{pgfplots}
+\usepackage{soul}
+%opening
+\title{Giorno 5}
+\author{Lorenzo Pace}
+
+\theoremstyle{definition}
+\newtheorem{deff}{Def.}[section]
+\newtheorem{lemma}[deff]{Lemma}
+\newtheorem{es}[deff]{Es.}
+\newtheorem{ex}[deff]{Esercizio}
+\newtheorem{teo}[deff]{Teorema}
+\newtheorem{prop}[deff]{Proposizione}
+\lstset
+{ %Formatting for code in appendix
+    language=Pascal,
+    otherkeywords={print, ref, nil}, 
+    basicstyle=\footnotesize,
+    numbers=left,
+    stepnumber=1,
+    showstringspaces=false,
+    tabsize=1,
+    breaklines=true,
+    breakatwhitespace=false,
+}
+\renewcommand{\qedsymbol}{\rule{1ex}{1ex}}
+\setlength{\parindent}{0em}
+\usetikzlibrary{shapes}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\rationals}{\mathbb{Q}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\begin{document}
+
+\begin{center}
+    \LARGE Giorno 5
+    
+\end{center}
+\section{Pillole di probabilità}
+\subsection{Probabilità}
+Sia $S$ un insieme detto \emph{spazio dei campioni}, i cui elementi, detti eventi elementari, sono i possibili risultati di un esperimento. 
+\subsubsection{Assiomi di probabilità, distribuzioni di probabilità discrete}
+Gli \emph{eventi} sono elementi di $\mathcal{P}(S)$.\smallskip
+
+Sia $\text{pr}\{\cdot\} \subseteq  \mathcal{P}(S) \times \reals$ una relazione che associa ad ogni evento di $S$ un numero reale, in modo che siano soddisfatti gli \emph{assiomi di probabilità}:
+\begin{enumerate}
+ \item $\text{Pr}\{S\} = \sum\limits_{s \in A} \text{Pr}\{s\} = 1$
+ \item $\forall s \in \text{eventi}(S) : \text{Pr}\{s\} \geq 0$
+ \item $\text{Pr}\{A \cup B\} = \text{Pr}\{A\} + \text{Pr}\{B\} - \text{Pr}\{A \cap B\}$
+\end{enumerate}
+Due eventi tali che $\text{Pr}\{A \cap B\} = \emptyset$ si dicono \emph{mutualmente esclusivi}; 
+
+Gli eventi elementari sono mutualmente esclusivi.\bigskip
+
+Se $S$ è finito e ogni elemento di $S$ ha probabilità $1/|S|$, allora si ha una \emph{distribuzione di probabilità uniforme}.
+\subsubsection{Probabilità condizionata e indipendenza}
+La probabilità condizionata di un evento $A$, sapendo che si è verificato un evento $B$, è definita come:
+
+\[\text{Pr}\{A | B\} = \dfrac{\text{Pr}\{A \cap B\}}{\text{Pr}\{B\}}\]
+
+Due eventi sono indipendenti se $\text{Pr}\{A \cap B\} = \text{Pr}\{A\}\text{Pr}\{B\}$
+\subsection{Variabili aleatorie discrete}
+Una variabile aleatoria $X$ è una funzione $X : S \to \reals$, dove $S$ può essere finito o infinito numerabile.
+
+Definiamo l'evento $X = x$ come $s \in S : X(s) = x$. Si ha:
+\[\text{Pr}\{ X = x \} = \sum\limits_{s \in S : X(s) = x} \text{Pr}\{s\}\]
+
+La funzione $f(x) = \text{Pr}\{ X = x \}$ è detta \emph{funzione densità di probabilità}.
+
+\subsubsection{Valore atteso}
+Il valore atteso (o medio) di una variabile aleatoria $X$ è $E[X] = \sum\limits_x x\text{Pr}\{X = x\}$.
+\newpage
+\section{Dizionari}
+Un dizionario è una struttura dati su cui sono definite le operazioni di inserimento, ricerca e cancellazione.\smallskip
+
+Un dizionario può essere implementato su varie SD, in particolare analizziamo le seguenti:
+
+\begin{enumerate}
+ \item Array non ordinato: 
+ 
+ \begin{center}
+  \begin{tabular}{|c|c|c|}
+  \hline
+    \textbf{Ricerca} & \textbf{Inserimento} & \textbf{Cancellazione}\\
+    \hline
+    Sequenziale - $O(n)$ & $O(1)$ & Non lasciare buchi - $O(n)$\\
+    \hline
+ \end{tabular}
+ 
+ \end{center}
+ \item Array ordinato:
+ \begin{center}
+  
+ \begin{tabular}{|c|c|c|}
+  \hline
+    \textbf{Ricerca} & \textbf{Inserimento} & \textbf{Cancellazione}\\
+    \hline
+    Binaria - $O(\log n)$ & Ordinato - $O(n)$ & Non lasciare buchi - $O(n)$\\
+    \hline
+ \end{tabular}
+
+ \end{center}
+\item Lista non ordinata:
+ \begin{center}
+  
+ \begin{tabular}{|c|c|c|}
+  \hline
+    \textbf{Ricerca} & \textbf{Inserimento} & \textbf{Cancellazione}\\
+    \hline
+    $O(n)$ & In testa - $O(1)$ & $\begin{cases}
+                                    O(n) & \text{lista semplice}\\
+                                    O(1) & \text{lista doppia}
+                                \end{cases}
+$\\
+    \hline
+ \end{tabular}
+
+ \end{center}
+ 
+ \item Lista ordinata:
+ \begin{center}
+  
+ \begin{tabular}{|c|c|c|}
+  \hline
+    \textbf{Ricerca} & \textbf{Inserimento} & \textbf{Cancellazione}\\
+    \hline
+    $O(n)$ & Ordinato - $O(n)$ & $\begin{cases}
+                                    O(n) & \text{lista semplice}\\
+                                    O(1) & \text{lista doppia}
+                                \end{cases}
+$\\
+    \hline
+ \end{tabular}
+
+ \end{center}
+
+\end{enumerate}
+
+\subsection{Tabelle Hash}
+Una implementazione migliore sono le \emph{tabelle hash}.
+
+\subsubsection{Tavole ad indirizzamento diretto}
+Prima di parlare delle tabelle hash, ha senso introdurre le \emph{tavole ad indirizzamento aperto}. Sia $U$ l'\emph{universo delle chiavi}, ossia l'insieme di tutte le chiavi che possono essere inserite nel dizionario. Si prenda un array di lunghezza $|U|$, e si inserisca semplicemente l'elemento di chiave $k$ nella cella $k$-esima dell'array. \smallskip
+
+In questo modo tutte e tre le operazioni di dizionario possono essere eseguite in tempo costante. \bigskip
+
+L'inghippo: Se l'universo delle chiavi non fosse finito? Se esistessero più elementi con la stessa chiave?
+
+\subsubsection{Funzione hash}
+Per risolvere il primo problema consideriamo un array $T$ di lunghezza $m$; possiamo introdurre una funzione $h : U \to \{0,1, \hdots, m-1\} \subset \naturals$, detta funzione hash, che mappa ogni chiave su una delle $m$ celle.
+
+Solitamente una funzione hash ha la forma: \[h(k) = k\mod m\]
+
+Rimane (peggiora) il problema delle \emph{collisioni}, ossia delle chiavi mappate sulla stessa cella; $h$, se $m<|U|$, non può infatti essere iniettiva.
+\newpage
+\subsection{Hashing con chaining}
+Una possibile soluzione è far puntare ogni elemento dell'array $T$ alla testa di una lista ``di trabocco''. Gli elementi di chiave $k$ saranno inseriti in testa alla lista $T[h(k)]$.\smallskip
+
+
+In questo modo l'inserimento costa $O(1)$. Analizziamo invece la ricerca al caso medio.\bigskip
+
+\subsubsection{Ricerca senza successo}
+Sia $m$ il numero di celle della tabella, $n$ il numero di elementi in essa contenuti.\bigskip
+
+
+La ricerca \textbf{senza successo} di un elemento di chiave $k$ comporta la scansione di tutta la lista $T[h(k)]$. Questa ha lunghezza, nel caso medio, è uguale ad $\dfrac{n}{m}$, il \emph{fattore di carico $\alpha$} della tabella hash. Considerando anche il costo del calcolo di $h(k)$, la complessità in tempo al caso medio della ricerca senza successo è $\Theta(1+ \alpha)$.\bigskip
+
+\subsubsection{Ricerca con successo}
+La ricerca \textbf{con successo} di un elemento $x$ di chiave $k$ comporta la scansione di tutti gli elementi che sono stati inseriti nella lista $T[h(k)]$ dopo $x$.\bigskip
+
+Ipotiziamo (\textbf{Hashing uniforme semplice}) che ogni chiave abbia la stessa probabilità di essere associata ad una delle $m$ celle di $T$.
+
+Indichiamo con $x_i$ l'$i$-esimo elemento inserito nella tavola; sia $k_i = x_i.key$. Definiamo la variabile aleatoria:
+
+\[I\{h(k_i) = h(k_j)\} = \begin{cases}
+       0 & \text{se $h(k_i) \neq h(k_j)$}\\
+       1 & \text{se $h(k_i) = h(k_j)$}
+      \end{cases}
+\]
+
+Nell'ipotesi di HUS, abbiamo che $\text{Pr}\{h(k_i) = h(k_j)\} = 1/m \implies E[X_{ij}] = 1/m$ (ossia $1\cdot1/m + 0$).\bigskip
+
+Cerchiamo il \textbf{numero atteso di elementi inseriti nella lista dopo $x$}, uguale alla\textbf{ media dei numeri attesi di elementi inseriti nella lista dopo $x_i$}, per $0 < i \leq n$.
+
+Il numero atteso di elementi inseriti prima di $x_i$ è uguale alla somma dei valori attesi di $I\{h(k_i) = h(k_j)\}$ per j compreso tra $i-1$ ed $n$. 
+
+\[\sum\limits_{j = i-1}^n E[I\{h(k_i) = h(k_j)\}] = \sum\limits_{j = i-1}^n E[X_{ij}] = \sum\limits_{j = i-1}^n \dfrac{1}{m} = \dfrac{n-i-1}{m} \]
+
+Calcoliamo quindi la media, sugli $n$ elementi della tavola, di $\dfrac{n-i-1}{m}$.
+
+\[\begin{aligned}
+    \dfrac{1}{n}\sum\limits_{i = 1}^n\dfrac{n-i-1}{m} &= \dfrac{1}{n}\sum\limits_{i = 1}^n\bigg(\dfrac{n}{m} - \dfrac{i}{m} -\dfrac{1}{m}\bigg) \\
+    &= \dfrac{1}{n}\bigg(\dfrac{n^2}{m} - \dfrac{n}{m}-\dfrac{1}{m}\sum\limits_{i = 1}^ni\bigg)\\
+    &= \dfrac{1}{n}\bigg(\dfrac{n^2}{m} - \dfrac{n}{m}-\dfrac{n(n+1)}{2m}\bigg)\\
+    &= \alpha - \dfrac{\alpha}{n} - \dfrac{\alpha}{2} - \dfrac{\alpha}{2n}\\
+    &= \dfrac{\alpha}{2} - \dfrac{\alpha}{2n}
+  \end{aligned}\]
+
+Considerando anche il tempo per esaminare l'elemento trovato, si ha un tempo medio di \[1 +\dfrac{\alpha}{2} - \dfrac{\alpha}{2n}  = \Theta(1+\alpha)\]
+
+L'importanza di questo risultato sta nel fatto che, quando $n = O(m)$, si ha che il costo della ricerca è costante.
+\newpage
+\subsection{Hashing con indirizzamento aperto}
+Un altro modello è quello dell'hashing con indirizzamento aperto. Gli elementi sono tutti memorizzati nell'array $T$, e le collisioni sono risolte tramite una \emph{sequenza di ispezione}.
+
+La funzione hash prende adesso due parametri -- $h : U \times \{0, 1, ..., m-1\} \subset \naturals \to \{0, 1, ..., m-1\}$.\smallskip
+
+$h$ è progettata in modo che $\langle h(k, 1), ..., h(k, m-1)\rangle$ sia una permutazione di $\langle 0,1, ..., m-1 \rangle$.\bigskip
+
+Ad ogni inserimento, partendo da $i = 0$, se la cella $h(k, i)$ è occupata si controlla la cella $h(k, i+1)$. Se questa è libera si inserisce, se no si incrementa $i$ e si ricontrolla.
+
+Una strategia simile si usa per la ricerca; si segue la sequenza di ispezione fino a trovare la chiave cercata.
+
+\subsubsection{Ricerca senza successo}
+Ipotizziamo (\textbf{Ipotesi di Hashing Uniforme}) che ogni chiave abbia la stessa probabilità di avere come sequenza di ispezione una delle $m!$ permutazioni di $\{0, 1, ..., m-1\}$.\bigskip
+
+In una ricerca senza successo ogni ispezione accede ad una cella occupata da un elemento di chiave diversa da $k$.\smallskip
+
+Definiamo la variabile aleatoria $X$ come il numero di ispezioni fatte in una ricerca senza successo.
+
+Un limite superiore per il valore atteso di $X$ è 
+
+\[\begin{aligned}
+E[x] &= \sum\limits_{i = 1}^{+\infty}i \cdot\text{Pr}\{X=i\} = \sum\limits_{i = 1}^{+\infty}\text{Pr}\{X\geq i\}\\
+&= \sum_{i = 1}^{+\infty}\text{ Probabilità di fare almeno $i$ accessi}\\
+&= \sum_{i = 1}^{+\infty}\text{ Probabilità di trovare le prime $i$ celle occupate}\\
+&= \sum_{i = 1}^{+\infty}\bigg(\dfrac{n}{m}\cdot \dfrac{n-1}{m-1}\cdot\hdots\cdot\dfrac{n-(i-2)}{m-(i-2)}\bigg)\\
+&\leq \sum_{i = 1}^{+\infty} \dfrac{n}{m}^{i-1} = \sum_{i = 1}^{+\infty}\alpha^{i-1} = \sum_{i = 0}^{+\infty} \alpha^i = \dfrac{1}{1-\alpha}
+  \end{aligned}\]
+  
+\subsubsection{Ricerca con successo}
+La ricerca di una chiave $k$ segue la stessa sequenza di ispezione che era stata seguita al suo inserimento. Se $k$ era la $i+1$-esima chiave inserita nella tabella hash, il numero atteso di operazioni fatte in una ricerca di $k$ è al più $\dfrac{1}{1-\underbrace{\text{\footnotesize$\frac{i}{m}$}}_{\alpha}} = \dfrac{m}{m-i}$.
+
+Calcoliamo la media su tutte le $n$ chiavi, ed otteniamo il numero medio di ispezioni durante una ricerca con successo.
+\[\begin{aligned}
+\frac{1}{n}\sum_{i= 0}^{n-1} \dfrac{m}{m-i} &= \dfrac{m}{n}\sum_{i= 0}^{n-1} \dfrac{1}{m-i} = \dfrac{1}{\alpha} \bigg[\dfrac{1}{m} + \dfrac{1}{m-1}+\hdots+\dfrac{1}{m-(n-1)}\bigg]\\
+&= \dfrac{1}{\alpha} \sum_{t = m-n+1}^m \dfrac{1}{t} \leq \dfrac{1}{\alpha} \int_{m-n}^{m} \dfrac{1}{x}dx = \dfrac{1}{\alpha} \ln \dfrac{1}{1-\alpha}
+\end{aligned}
+\]
+\newpage
+
+\subsection{Tipi di ispezione}
+\subsubsection{Ispezione lineare}
+L'ispezione lineare prevede una funzione hash del tipo:
+\[h(h'(k), i) = (k+i)\mod m\]
+
+Dove $h'$ è una funzione hash $U \to \{0,1,\hdots m-1\}$ ausiliaria.\bigskip
+
+
+Questo tipo di ispezione porta ad un fenomeno noto come \emph{clustering primario}: Se una cella $T[j]$ è occupata, la chiave viene inserita nella successiva (se libera). Se si riprova ad inserire in $T[j]$, o in $T[j+1]$, queste saranno trovate occupate, quindi si andrà ad inserire in $T[j+2]$, e così via: in questo modo si crea un \textbf{agglomerato di celle adiacenti occupate}, che peggiorano le prestazioni.\bigskip
+
+Inoltre, ci sono solo $m$ possibili sequenze, a fronte delle $m!$ permutazioni di $m$ elementi.
+
+\subsubsection{Ispezione quadratica}
+Un altro tipo di ispezione è quella quadratica. La funzione hash ha la forma:
+
+\[h(k, i) = (h'(k) + c_1 i + c_2 i^2)\mod m\]
+
+Si noti come il punto di inizio della sequenza dipende solo da $k$, e non da $i$:\smallskip
+
+Ogni coppia di sequenze tali che $h(k_1, 0) = h(k_2, 0)$ saranno uguali in ogni altra posizione. Questo fenomeno si dice \emph{clustering secondario}. \bigskip
+
+Come nell'ispezione lineare, ci sono solo $m$ sequenze possibili.
+
+\subsubsection{Doppio Hashing}
+
+Una soluzione al problema del clustering è utilizzare due funzioni hash ausiliarie:
+\[h = (h_1(k) + ih_2(k))\mod m\]
+In questo modo, a patto che $h_2(k)$ e $m$ siano coprimi, sia la posizione iniziale che il ``passo'' dipendono da $k$, e ci sono $m^2$ possibili sequenze, che è sempre molto meno di $m!$, ma uno si accontenta.
+\end{document}
