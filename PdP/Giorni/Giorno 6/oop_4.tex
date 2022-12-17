@@ -1,0 +1,239 @@
+  
+ 
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{MnSymbol}
+\usetikzlibrary{patterns.meta}
+\setlength{\parindent}{0em}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\cnot}{\centernot}
+
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language=java,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\bfseries,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+
+\begin{center}
+    \LARGE Giorno 6\smallskip
+
+    \Large OOP: Principio di Sostituzione di Liskov
+\end{center}\smallskip
+
+\begin{abstract}
+
+\end{abstract}
+
+\section{Progettazione e Sviluppo di programmi Java}
+\subsection{Fasi di Progettazione e Sviluppo}
+\begin{itemize}
+ \item Definizione della gerarchia di classi e interfacce
+ \item Identificazione dei membri pubblici di ogni classe
+ \item Definizione delle specifiche di ogni metodo pubblico (condizioni su parametri e risultato, comportamento atteso del metodo):
+ \begin{itemize}
+  \item Aggiunta di commenti in cui scriviamo requirements ed effects
+  \item Esprimendo condizioni su parametri e variabili (e.g. \textbf{assert})
+ \end{itemize}
+
+ \item Testing delle singole classi
+ \item Definizione dei membri privati seguendo il principio di incapsulamento
+ \item Implementazione del codice, da verificare con i test già sviluppati
+\end{itemize}
+\subsubsection{Esempio: IntSet}
+\begin{lstlisting}
+ // OVERVIEW: un IntSet e' un insieme di interi
+    public class IntSet {
+        public IntSet(int capacity) {
+        // REQUIRES:    capacity non negativo
+        // EFFECTS:     crea un insieme vuoto che puo' ospitare capacity elementi
+    }
+    public boolean add(int elem) throws FullSetException {
+        // REQUIRES:    numero di elementi contenuti nell'insieme minore di capienza
+        // EFFECTS:     se elem non e' presente nell'insieme lo aggiunge e restituisce true,
+        //              restituisce false altrimenti
+    }
+    public boolean contains(int elem) {
+        // REQUIRES:
+        // EFFECTS:     restituisce true se elem p presente nell'insieme, false altrimenti
+    }
+ }
+\end{lstlisting}
+
+\paragraph{Nota:} \texttt{add} può sollevare un'eccezione quando l'insieme è ``pieno''. Le eccezioni sono gestite in Java come in Javascript, e possono estendere Exception o RuntimeException. Per usare un'eccezione in una classe bisogna dichiararlo nell'intestazione.
+
+
+\paragraph{JavaDoc}
+Esiste una sintassi per le specifiche tramite commenti che permette di generare documentazione:
+
+\begin{lstlisting}
+ /**
+  * Aggiunge un elemento all'insieme
+  * @param elem valore intero
+  * @return true se l'inserimento viene aggiunto, false se gia' presente
+  * @throws FullSetException se l'insieme e' pieno
+  */
+public boolean add(int elem) throws FullSetException {
+...
+}
+\end{lstlisting}
+
+
+\newpage
+
+[Esempio di test e implementazione e altre cose, vd slide]
+
+[vd. Infer, Pathfinder: model checker]
+
+\section{Principio di Sostituzione di Liskov}
+\paragraph{Principio di Sostituzione:}
+\begin{quote}
+ Un oggetto di un \textbf{sottotipo} può sostituire un oggetto del \textbf{supertipo} senza influire sul \textbf{comportamento} dei programmi che usano il supertipo
+\end{quote}
+
+\subsection{Differenza dalla subsumption}
+\begin{itemize}
+ \item La subsumption permette di considerare un tipo $A$ tale che $A <: B$ come di tipo $B$.
+ \item Il principio di sostituzione parla di \textbf{comportamento}, e.g. se si hanno due classi ``\texttt{rettangolo}'' e ``\texttt{quadrato}'', che hanno entrambe metodi per calcolare l'area, e $\texttt{quadrato} <: \texttt{rettangolo}$, allora: si può utilizzare un oggetto ``\texttt{quadrato}'' al posto di un \texttt{rettangolo}, ed il comportamento sarà indistinguibile da quello con un \texttt{rettangolo} con tutti i lati uguali.
+\end{itemize}
+
+Il principio di Liskov può o meno valere tra due classi, e verificare se vale è un \textbf{problema indecidibile}.
+\subsection{Regole indotte dal LSP}
+Il principio si traduce nella pratica in regole da seguire:
+\subsubsection{Regola della segnatura}
+\begin{itemize}
+ \item Gli oggetti del sottotipo devono avere tutti i metodi del supertipo
+ \item Le segnature (signature) dei metodi del sottotipo devono essere compatibili con quelle corrispondenti del supertipo.
+\end{itemize}
+La presenza di tutti i metodi è \textbf{garantita dal compilatore Java} tramite i meccanismi di ereditarietà;\smallskip
+
+In caso di overriding, il metodo della sottoclasse deve:
+\begin{itemize}
+ \item Avere la stessa firma del metodo della superclasse
+ \item Sollevare meno eccezioni
+ \item Avere un tipo di ritorno più specifico di quello della superclasse
+
+\end{itemize}
+
+\subsubsection{Regola dei metodi}
+\begin{itemize}
+ \item Le chiamate dei metodi del sotto-tipo devono \textbf{comportarsi} come le chiamate dei corrispondenti metodi del supertipo
+\end{itemize}
+
+Devono valere le seguenti regole:
+\[ \text{precondizioni}_{super} \implies \text{precondizioni}_{sub} \]
+\[ (\text{precondizioni}_{super} \wedge \text{postcondizioni}_{sub}) \implies \text{postcondizioni}_{super} \]
+
+Dove le \textbf{postcondizioni} altro non sono che gli \textbf{effetti} del metodo.
+\medskip
+
+Ciò significa che \textbf{le precondizioni possono essere indebolite nel sottotipo, e le postcondizioni possono essere rafforzate.}
+\paragraph{Esempio:}
+Si hanno due classi: La \textbf{superclasse} \texttt{IntSet} e la sua \textbf{sottoclasse} \texttt{FlexIntSet} (rispettivamente insieme di interi di cardinalità fissata e insieme flessibile di interi):\smallskip
+
+\textbf{Superclasse IntSet}
+\begin{lstlisting}
+ public boolean add(int elem) throws FullSetException {
+    // REQUIRES: numero di elementi contenuti nell'insieme minore di capienza
+    // EFFECTS: se elem non e' presente nell'insieme lo aggiunge e restituisce true,
+    //          restituisce false altrimenti
+\end{lstlisting}
+
+Ossia la precondizione è $size < capacity$, mentre la postcondizione è $retval \in set$
+
+\smallskip
+\textbf{Sottoclasse FixedIntSet}
+\begin{lstlisting}
+ public boolean add(int elem) {
+    // REQUIRES:
+    // EFFECTS: se elem non e' presente nell'insieme lo aggiunge e restituisce true,
+    //          restituisce false altrimenti
+\end{lstlisting}
+
+Le precondizioni sono vuote, quindi $true$, mentre le postcondizioni sono sempre $retval \in set$.\medskip
+
+Di conseguenza:
+
+\[ (size < capacity) \implies true \quad\quad (size < capacity) \wedge (retval \in set) \implies (retval \in set) \]
+
+Sono entrambe vere.
+
+\paragraph{Nota: perché seconda parte della regola?}
+Ci chiediamo a cosa serve $\text{precondizioni}_{super}$ nella regola:
+\[ (\text{precondizioni}_{super} \wedge \text{postcondizioni}_{sub}) \implies \text{postcondizioni}_{super} \]
+
+Nell'esempio sopra, \textbf{dobbiamo poter gestire il caso} $capacity > size$; in tal caso il metodo del supertipo lancerà qualche eccezione forse, mentre il sottotipo non ha problemi a continuare ad aggiungere: non ha precondizioni!
+
+\subsubsection{Regola delle proprietà}
+\begin{itemize}
+ \item Il sotto-tipo deve preservare tutte le proprietà che possono essere provate sugli oggetti del supertipo.
+\end{itemize}
+
+Ciò significa che i \textbf{ragionamenti} sulle proprietà degli oggetti del supertipo sono ancora validi su quelle del sottotipo; 
+
+\paragraph{Esempi di proprietà}
+Sempre rispetto all'esempio del punto precedente\smallskip
+
+\textbf{Proprietà invarianti:}
+\begin{itemize}
+ \item  IntSet ha sempre elementi diversi
+ \item Ad un oggetto FlexIntSet è sempre possibile aggiungere nuovi elementi
+\end{itemize}
+\smallskip
+
+\textbf{Proprietà di evoluzione:}
+\begin{itemize}
+ \item Il numero di elementi in IntSet non può diminuire nel tempo
+ \item Se $add(n) \to true$, allora da quel punto in poi $contains(n) \to true$.
+\end{itemize}
+
+\paragraph{Invarianti e incapsulamento}
+\begin{itemize}
+ \item La rappresentazione deve essere privata! Altrimenti dall'esterno si potrebbe modificare qualcosa modificando l'invariante!
+\end{itemize}
+
+\paragraph{ERRORE COMUNE} Anche se la rappresentazione di un attributo è privata, questo potrebbe essere un oggetto (e.g. un array), e se per caso questo oggetto fosse ritornato da una funzione, sarebbe \textbf{passato per riferimento}, errore grave che viola l'incapsulamento.
+
+\begin{lstlisting}
+public class IntSet {
+    private int[] a;
+    public int[] getElements() { return a; } // ERRORE GRAVE!!!
+    
+...
+}
+\end{lstlisting}
+
+
+
+\end{document}
+ 

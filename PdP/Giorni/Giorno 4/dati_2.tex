@@ -1,0 +1,160 @@
+ 
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{MnSymbol}
+\usetikzlibrary{patterns.meta}
+\setlength{\parindent}{0em}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\cnot}{\centernot}
+
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language=caml,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\bfseries,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+
+\begin{center}
+    \LARGE Giorno 4\smallskip
+
+    \Large Dati
+\end{center}\smallskip
+\begin{abstract}
+ 
+\end{abstract}
+
+\section{Funzioni come dati}
+\subsection{Type Inference}
+Supponendo di eliminare l'annotazione di tipo dalla sintassi e delle regole, può essere possibile ricostruire il tipo di un'espressione facendo \emph{inferenza di tipo}.
+\subsubsection{Variabili di tipo}
+Il primo passo verso l'inferenza di tipo è l'introduzione di \emph{variabili di tipo} non interpretate, che servono da placeholder per tipi specifici su cui non abbiamo (ancora) informazioni.\smallskip
+
+Le variabili di tipo possono essere \textbf{sostituite} o \textbf{istanziate} con altri tipi; L'\emph{idea} è di definire un \textbf{sistema di vincoli} sulle variabili di tipo, e risolverlo per scoprire se esistono sostituzioni capaci di soddisfare tutti i vincoli.\bigskip
+
+\emph{Esempio}:
+
+\[ fun(x) = x + 1 \]
+
+Il tipo ha la forma $X \to X$, e dato che utilizziamo $x$ nell'operazione di somma tra interi, esiste il vincolo $X = Int$. In questo caso la risoluzione del sistema è banale (è formato di una sola equazione con una singola incognita, e si ha perciò che il tipo dell'espressione è $Int \to Int$)
+
+\subsubsection{Notazione}
+\begin{itemize}
+ \item Estendiamo la notazione usata per la sostituzione nel $\lambda$-calcolo alla sostituzione dei tipi:\smallskip
+
+$\tau\{X := \tau_1\}$ è il tipo ottenuto sostituendo tutte le occorrenze della var. di tipo $X$ in $\tau$ con il tipo $\tau_1$.
+ \item Chiamiamo $C$ il sistema di equazioni:
+ \[ \rho_i = \{\kappa_i \,|\, i = 1, \hdots, n\} \]
+
+ Dove $\rho_i$ e $\kappa_i$ sono tipi contenenti variabili di tipo. 
+ \item $C$ è soddisfatto se esiste una sostituzione $\sigma$ tale che $\forall i: \sigma(\rho_i) = \sigma(\kappa_i)$
+ \item \emph{Esempio}: 
+ 
+ \[C = \{ X \to Int = Y, \quad X = Int\}\]
+ La sostituzione tale che $\sigma(\tau) = \tau\{X := Int\}$ risolve il sistema (sempre banale per la seconda equazione).
+\end{itemize}
+
+\subsubsection{Osservazione}
+
+Quando vado a processare una funzione ed ottengo espressione di tipo e vincoli, possono succedere due cose:
+
+\begin{itemize}
+ \item Esistono infinite $\sigma$ che rendono soddisfacibile un tipo (o anche: per ogni $\sigma$ il tipo è soddisfacibile) $\implies$ la funzione è \textbf{polimorfa}
+ \item Solo una qualche $\sigma$ rende il tipo soddisfacibile.
+\end{itemize}
+
+\newpage
+ \subsection{Type inference}
+ \subsubsection{Costruzione dei vincoli}
+ Costruiamo i vincoli insieme ai tipi:
+ \begin{itemize}
+  \item Le costanti (in questo esempio solo naturali) sono semplicemente tipate con il loro tipo:
+  \[\dfrac{}{\Gamma \vdash n : Nat \,|\, \emptyset}\]
+  $\emptyset$ indica i vincoli aggiunti da questa espressione (nessuno)
+  \item Lo stesso vale per le variabili, non aggiungono nessun vincolo:
+  \[ \dfrac{\Gamma(x) = \tau}{\Gamma \vdash x : \tau \,|\, \emptyset} \]
+  \item Astrazione (fun)
+  \[ \dfrac{\Gamma, x : X \vdash e : \tau \,|\, C}{\Gamma fun \,\,x = e:X \to \tau \,|\, C} ,\quad X\text{ fresh}\]
+  
+  Qua si applica l'esempio di prima: $fun(x) = x + 1 $, l'espressione $x+1$ genera il vincolo $X = Int$, che ci portiamo dietro nell'astrazione. 
+  
+  In realtà l'unica operazione che posso fare in questa versione del $\lambda$-calcolo tipato sono le applicazioni:
+  \item Applicazione:
+  \[ \dfrac{\Gamma \vdash e_1 : \tau \,|\, C_1 \quad \Gamma \vdash e_2 : \tau_1 \,|\, C_2}{\Gamma \vdash Apply(e_1, e_2):X \,|\, C_1 \cup C_2 \cup \{ \tau = \tau_1 \to X \}},\quad X\text{ fresh} \]
+  \item La ricorsione non viene approfondita, perché non aggiunge niente di interessante, ma la riporto:
+  \[ \dfrac{\Gamma \vdash e : \tau \,|\, C}{\Gamma \vdash fix \,\, e:X \,|\, C_1 \cup \{ \tau_X \to X \}},\quad X\text{ fresh} \]
+ \end{itemize}
+\emph{Idea}: Sommarizzando, l'idea è di portarsi dietro i vincoli generati tramite l'applicazione funzionale (e la fix) lungo l'albero di sintassi astratta, in modo da avere poi tutti i vincoli alla fine.\smallskip
+
+[Le regole possono essere tradotte in codice del type-checker, vedi pseudocodice nelle slide]
+
+
+\subsubsection{Risoluzione del sistema di vincoli\protect\footnote{Paolomil si è confuso nel confondersi}}
+
+\begin{multicols}{2}
+ 
+\begin{lstlisting}
+ function aux(T0, C)
+    while C is not empty
+        pop a constraint S=T from C
+        if S = T
+            do nothing
+        else if S = X and X not in  FV(T)
+            T0 = T0{X:= T}
+            C = C{X:=S}
+        else if T = X and X not in FV(S)
+            T0 = T0{X:= S}
+            C = C{X:=T}
+        else if S = S1 -> S2 and T = T1->T2
+            C = C  U  {S1=T1, S2=T2}
+        else
+            fail
+    return T0
+\end{lstlisting}
+\begin{itemize}
+ \item Prendo un vincolo $S = T$ dalla lista dei vincoli
+ \item Se $S = T$, e.g. $S = Int$, $T = Int$, allora rimuovo il vincolo (non mi dice niente)
+ \item Se $S = X$ ed $X$ non è una variabile libera di $T$, allora posso sostituire la lista dei tipi e quella dei vincoli.
+ \item Caso $T = X$ simmetrico
+ \item Se $S = S1 \to S_2$, $T = T_1 \to T_2$, allora aggiungiamo ai vincoli le singole uguaglianze tra ``componenti''.
+ \item Se il tipo è decidibile, l'espressione termina, se no fallisce il ``patternmatching'' e fallisce tutto
+\end{itemize}
+
+\end{multicols}
+
+(Con \texttt{U} ho indicato l'unione, alla riga 13.) L'operazione svolta dal programma è detta ``di unificazione''.
+
+
+
+
+
+\end{document}

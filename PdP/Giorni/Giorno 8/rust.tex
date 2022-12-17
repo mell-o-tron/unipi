@@ -1,0 +1,79 @@
+   
+ 
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{MnSymbol}
+\usetikzlibrary{patterns.meta}
+\setlength{\parindent}{0em}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\cnot}{\centernot}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language=java,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\bfseries,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+
+\begin{center}
+    \LARGE Giorno 8\smallskip
+
+    \Large RUST
+\end{center}\smallskip
+
+
+\section{Rust}
+Rust è un linguaggio i cui aspetti fondamentali sono:
+
+\begin{itemize}
+ \item \textbf{Lifetimes, Ownership:} Alle aree di memoria allocate (variabili nello \textbf{heap}) è assegnato uno ed un solo \textbf{owner}.
+ 
+ Sia \texttt{a} il puntatore ad un'area di memoria. Se scrivo \texttt{b = a}, la ownership di tale area di memoria passa da \texttt{a} a \texttt{b}, che diventa l'unico puntatore a tale area di memoria. È anche possibile ``prestare'' (as opposed to: trasferire) un'area di memoria ad un altra variabile, che manterrà la ownership fino al momento della sua \textbf{free} (in rust: \textbf{drop}), che avviene alla fine del blocco di definizione.\smallskip
+ 
+ Se le variabili smettono di esistere alla fine del loro blocco di definizione, non c'è bisogno di fare \textbf{free} manualmente, o di usare un garbage collector. Possiamo quindi fare controlli statici sul \textbf{lifetime} delle variabili.
+
+ \item \textbf{Traits:} = mixins, utilizzati per aggiungere funzionalità, e.g. si può definire una funzionalità di \textbf{copia} (\textbf{trait Copy}); In questo modo si può scrivere \texttt{b = a} (esempio di prima) ma si crea una copia della porzione di memoria, non un \emph{alias}. Questo ci porta al prossimo punto:
+ \item \textbf{Immutabilità} (come in OCaml)
+ \item \textbf{Tipi di dato e pattern-matching}
+ \item \textbf{Inferenza di tipo}
+ \item \textbf{Generics}
+ \item \textbf{Programmazione funzionale}
+ 
+ 
+ 
+ \end{itemize}
+
+ E questo è più o meno tutto quello che c'è da sapere su Rust per questo corso.
+
+\end{document}

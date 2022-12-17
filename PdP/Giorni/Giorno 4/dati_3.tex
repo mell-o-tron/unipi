@@ -1,0 +1,205 @@
+ 
+ 
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{MnSymbol}
+\usetikzlibrary{patterns.meta}
+\setlength{\parindent}{0em}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\cnot}{\centernot}
+
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language=caml,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\bfseries,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+\lstset{
+ morekeywords={module, sig, struct}
+}
+\begin{document}
+
+
+\begin{center}
+    \LARGE Giorno 4\smallskip
+
+    \Large Dati
+\end{center}\smallskip
+\begin{abstract}
+ 
+\end{abstract}
+
+\section{Polimorfismo}
+\subsection{Idea}
+Fin ora abbiamo considerato il polimorfismo \emph{parametrico}, quello in cui si hanno tipi con un parametro (e.g. la $<T>$ dei generics in Typescript.)\smallskip
+
+Vogliamo edesso parlare di \textbf{polimorfismo per sottotipo}, ossia vogliamo definire, ad esempio, delle funzioni che accettano come parametro sia un certo tipo $T$ che i suoi ``sottotipi'', che non sono altro che versioni più specializzate di un certo tipo. 
+
+\paragraph{Esempio classico} Se si hanno:
+
+\begin{itemize}
+ \item Il record ``persona'', con i campi ``nome'' e ``cognome''
+ \item Il record ``studente'' uguale a ``persona'' ma con in più un campo ``matricola''
+\end{itemize}
+Allora ``studente'' può essere visto come \textbf{sottotipo} di ``persona'', scriviamo:
+\[ \texttt{studente } <: \texttt{ persona} \]
+
+\subsection{Sottotipi}
+\subsubsection{Subsumption}
+La regola di \emph{subsumption} ci permette di applicare funzioni che accettano come parametro sia dati di un tipo che dati dei suoi sottotipi.
+\[ \dfrac{\Gamma \vdash e : S \quad S <: T}{\Gamma \vdash e :T} \]
+
+Ossia ``se un'espressione è di tipo $S$ e $S<:T$ allora $e$ è anche di tipo $T$''
+\subsubsection{Definizione della relazione di sottotipo}
+Data la subsumption, il problema diventa la definizione della relazione di sottotipo. Alcuni linguaggi (class based) utilizzano l'estensione, altri (object based) il subtyping strutturale (i.e. $A$ sottotipo di $B$ se ha i campi di $B$ + altri campi). Un esempio di subtyping strutturale è la relazione di sottotipo per i record:
+\paragraph{Subtyping dei record}
+    \[ \{ l_i = v_i\quad i = 1, \hdots, k+n \} <: \{ l_i = v_i \quad i = 1, \hdots, k \} \]\smallskip
+    \[ \dfrac{\{ k_i = u_i\quad i = 1, \hdots, n \} \text{ permutazione di }\{ l_j = v_j \quad j = 1, \hdots, n \}}{\{ k_i = u_i\quad i = 1, \hdots, n \} <: \{ l_j = v_j \quad j = 1, \hdots, n \}} \]\smallskip
+
+Caso particolare - il record ha campi di tipo record:
+    \[ \dfrac{\forall i \quad S_i <: T_i}{\{ l : S_i\quad i = 1, \hdots, n \} <: \{ l_j : T_j\quad j = 0, \hdots, n \}} \]
+    
+e.g. una lista di studenti è sottotipo di una lista di persone.
+
+\subsubsection{Top}
+È conveniente avere un tipo che sia supertipo di ogni tipo: lo chiamiamo \textit{\textbf{Top}} (Object in Java)\newpage
+
+\subsection{Funzioni}
+\subsubsection{Subsumption per le funzioni}
+Vogliamo che una funzione $S_1 \to S_2$ possa prendere un argomento di tipo $T_1 <: S_1$ e restituire un risultato di tipo $T_2 :> S_2$
+
+\[ \dfrac{T_1 <: S_1 \quad\quad S_2 <: T_2}{S_1 \to S_2 <: T_1 \to T_2} \]
+
+Diciamo che la relazione di sottotipo è 
+\begin{itemize}
+ \item \textbf{Covariante} per il risultato delle funzioni, dove \emph{covariante} significa che la relazione d'ordine è conservata; in generale per un operatore $F$:
+ 
+ \[ \dfrac{S :< T}{F\langle S\rangle <: F \langle T\rangle } \]
+ 
+ Dove con $F\langle T \rangle$ indico un operatore che prende (o restituisce) tipo $T$ o un \textbf{costruttore di tipo} che prende come parametro\footnote{Vedi: \texttt{en.wikipedia.org/wiki/Type\_constructor} \quad e\quad \texttt{en.wikipedia.org/wiki/List\_(abstract\_data\_type)}} $T$.
+ \item \textbf{Controvariante} per il parametro della funzione, dove \emph{controvariante} significa che la relazione di sottotipo è invertita.
+\end{itemize}
+
+ \subsection{Altri esempi}
+ \subsubsection{Classi in Java}
+ In java una sottoclasse \textbf{non} può cambiare i tipi dei parametri dei \textbf{metodi}, ma può rendere più specifico il tipo del risultato (\textbf{covariante} sul risultato (come le funzioni prima), e \textbf{invariante} sugli argomenti):
+ \[ \dfrac{S_1 <: T_1}{m : S \to S_1 <: m : S \to T_1} \]
+ \subsubsection{Liste}
+ \[ \dfrac {S <: T}{List\,\,S <: List\,\,T} \]
+List è un costruttore di tipo covariante.
+
+\subsection{Riferimenti e puntatori}
+\subsubsection{Riferimenti vs puntatori}
+Riferimenti e puntatori sono simili, ma la differenza sta nel fatto che per i puntatori esiste un'\textbf{aritmetica dei puntatori}, i.e. si possono fare operazioni aritmetiche sulle locazioni di memoria, mentre i riferimenti permettono solo di creare delle variabili che accedono alla stessa locazione di memoria.
+
+\subsubsection{Aliasing}
+
+Problema: \[\lambda r : Ref\,\,Nat . \lambda s Ref\,\, Nat . (r := 2 , s:=3; !r)\]
+
+Restituisce 2, a meno che $s$ non sia un alias di $r$.\smallskip
+
+I compilatori effettuano analisi degli alias per cercare di stabilire quando variabili diverse non si riferiscono alla stessa memoria.
+\subsubsection{Regole di tipo}
+\[\dfrac{\Gamma \vdash e_1 : \tau_1}{\Gamma \vdash ref\,\,e_1 : ref\,\,\tau_1} \hspace{2cm} \dfrac{\Gamma \vdash e_1 : ref\,\,\tau_1}{\tau \vdash !e_1 : \tau_1} \hspace{2cm} \dfrac{\Gamma \vdash e_1 : ref\,\, \tau_1 \quad\quad \Gamma \vdash e_2 : \tau_1}{\Gamma \vdash e_1 := e_2 : unit}\]
+
+\newpage
+\section{Abstract Data Types}
+Un \textbf{tipo di dato astratto} consiste di un \textbf{insieme di dati} e una \textbf{collezione di operazioni} per operare sui dati di quel tipo. 
+\begin{itemize}
+ \item \textbf{estendibili}: si possono costruire nuovi ADT 
+ \item \textbf{Astratti}: Rappresentazione nascosta agli utenti
+ \item \textbf{Incapsulati}: Si opera con i dati solo attraverso operazioni dell'ADT
+\end{itemize}
+\subsection{Specifica ed implementazione}
+La \textbf{specifica} descrive la semantica delle operazioni di un tipo di dato astratto; uno stesso ADT può avere diverse implementazioni, ma questa differenza sarà invisibile al programmatore.
+\subsubsection{Approcci alla definizione di ADT}
+\begin{itemize}
+ \item \textbf{Signature + Axioms}: si definiscono le operazioni e i loro \emph{tipi}, e delle proprietà astratte da rispettare nella forma di \emph{assiomi}
+ 
+ \begin{lstlisting}
+  Stack <E>
+    Signature                           //Operazioni significative
+        new     : -> STACK
+        push    : E, STACK
+        top     : STACK -> E
+        pop     : STACK -> STACK
+        isEmpty : STACK -> Bool
+        undef_e : -> E                  //Completezza (elem/stack vuoto)
+        undef_s : -> STACK
+    
+    Axioms                              // Proprieta' astratte da rispettare
+        forall e: E, stk: STACK
+        top(push(e, stk)) = e ;
+        top(new) = undef_e ;
+        pop(push(e, stk)) = stk ;
+        pop(new) = undef_s ;
+        isEmpty(new) ;
+        ~isEmpty(push(e, stk))
+ \end{lstlisting}
+
+\end{itemize}
+\subsection{Moduli in OCaml}
+\subsubsection{Signature}
+\begin{lstlisting}
+ module type BOOL = sig
+    type t
+    val yes : t
+    val no  : t
+    val choose : t -> 'a -> 'a -> 'a
+ end
+\end{lstlisting}
+
+\subsubsection{Esempio: Implementazioni equivalenti di BOOL}
+\begin{multicols}{2}
+ \begin{lstlisting}
+ module M1 : BOOL = struct
+    type t = unit option
+    let yes = Some ()
+    let no  = None
+    let choose v ifyes ifno =
+        match v with
+        | Some () -> ifyes
+        | None -> ifno
+ end\end{lstlisting}
+
+ \begin{lstlisting}
+  module M1 : BOOL = struct
+    type t = int
+    let yes = 1
+    let no  = 0
+    let choose v ifyes ifno =
+        match v with
+        | 1 -> ifyes
+        | 0 -> ifno
+ end\end{lstlisting}
+
+\end{multicols}
+
+\end{document}

@@ -1,0 +1,588 @@
+ 
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{MnSymbol}
+\usetikzlibrary{patterns.meta}
+\setlength{\parindent}{0em}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\cnot}{\centernot}
+
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language=caml,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\bfseries,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+
+\begin{center}
+    \LARGE Giorno 2
+
+    \Large Implementazione di Interpreti
+\end{center}\smallskip
+
+\begin{abstract}
+Si presentano un interprete di espressioni aritmetiche, con cenni sulla struttura ed implementazione di scanner e parser, un interprete del $\lambda$-calcolo ed uno di una versione didattica di Caml.
+\end{abstract}
+
+\section{Introduzione}
+
+\subsection{Ciclo di interpretazione}
+Le fasi dell'interpretazione sono:
+\begin{itemize}
+ \item Scanner: Analisi lessicale, restituisce token list
+ \item Parser: Analisi grammaticale, genera AST
+ \item Type checker: Controllo dei tipi
+ \item Interprete: restituisce il risultato.
+\end{itemize}
+
+\textbf{Scanning e parsing} possono essere realizzati a livello di intero programma o di singole istruzioni/espressioni, e lo stesso vale anche per le altre fasi.
+\subsubsection{Esempio: NodeJS vs OCaml}
+
+\emph{Node.js} controlla prima la sintassi di tutto il programma, e poi interpreta:\smallskip
+
+\quad \texttt{console.log(1); console.log(2;} $\to$ Non stampa 1 prima di vedere che manca la parentesi.\medskip
+
+Mentre il toplevel di OCaml esegue il parsing sulle singole espressioni:\smallskip
+
+\quad \texttt{let x = 10;; lett y = 20;;} $\to$ Esegue comunque la prima espressione.
+
+\subsection{Interprete di espressioni aritmetiche}
+\subsubsection{Scanner}
+\begin{itemize}
+ \item Definiamo i token come tipo union:
+
+\quad \texttt{type token =}
+
+\quad \texttt{Tkn\_NUM of int | Tkn\_OP of string | Tkn\_LPAR | Tkn\_RPAR | Tkn\_END;;}
+
+\item Creiamo un'eccezione \texttt{ParseError}:
+
+\quad \texttt{exception ParseError of string * string;;}
+
+\item Che utilizzeremo nel seguente modo:
+
+\quad \texttt{raise (ParseError(``Tokenizer'', ``unknown symbol''\^{}c))}
+
+...all'interno della funzione ricorsiva \texttt{tokenize}, che scansionando i caratteri costruisce una lista di token ad essi corrispondenti, e.g.
+\begin{lstlisting}
+ match c with
+    |" " -> tokens | "(" -> Tkn_LPAR :: tokens | ")" -> Tkn_RPAR
+    | "+" | "-" | "*" | "/" -> (Tkn_OP c) :: tokens
+    | "0" | "1" | ... | "9" -> Tkn_NUM (cifre consecutive accorpate)
+\end{lstlisting}
+
+
+
+\end{itemize}
+Problema: Implementazione non tail-recursive, ma vabbè.
+\newpage
+\subsubsection{Parser}
+Si realizza un \emph{parser a discesa ricorsiva}:
+\begin{itemize}
+ \item Si crea una funzione per ogni categoria sintattica 
+ 
+ (nell'esempio: $Exp ::= Term[\pm Exp]$, \quad $Term ::= Factor [*\,\, Term \,\,\vert\,\, / Term]$, \quad $Factor ::= n \,\,|\,\, (Exp)$)
+ \item Le funzioni create sono mutuamente ricorsive (\texttt{and})
+ \item L'AST corrisponderà all'albero delle chiamate
+\end{itemize}
+
+\paragraph{Implementazione}
+\begin{itemize}
+ \item Si passa la lista dei token per riferimento
+ \item Si definiscono due funzioni speciali: \textbf{lookahead}, che permette di vedere qual è il prossimo token da processare senza eliminarlo, e \textbf{consume}, che NON restituisce ma elimina il primo token della lista.
+ 
+ \begin{lstlisting}
+  let tokens = ref (tokenize s) in 
+  
+  let lookahead () = match !tokens with
+    | [] -> raise (ParseError("Parser", "lookahead error"))
+    | t :: _ -> t
+    
+  in consume () = match !tokens with
+    | [] -> (ParseError("Parser", "consume error"))
+    | t::tkns -> tokens := tkns \end{lstlisting}
+
+ 
+ \item Ad esempio, per gestire le operazioni binarie delle espressioni:
+ 
+ \begin{lstlisting}
+  let rec exp () = (* si noti che la funzione ha tipo unit *)
+    let t1 = term() in  
+        match lookahead () with 
+            | Tkn_OP "+" -> consume() ; Op (Add t1, exp())
+            | Tkn_OP "-" -> consume() ; Op (Sub t1, exp()) \end{lstlisting}
+La chiamata ricorsiva ad \texttt{exp} in \texttt{Op (Add t1, exp())} fa un passo della costruzione dell'AST.
+\item L'AST completo viene ottenuto facendo: \texttt{let ast = exp ()} e in seguito controllando se una chiamata di \texttt{lookahead()} restituisce solo il token di fine. In caso contrario non tutti i token sono stati valutati, e c'è stato perciò un parse error.
+\end{itemize}
+
+\subsubsection{Nota sui parser}
+L'implementazione dei parser non è sempre così semplice; si usano solitamente dei \emph{parser generator} che li creano per noi (non argomento del corso). Nei linguaggi che implementeremo partiremo perciò dall'AST, e non implementeremo un parser.
+\newpage
+\subsubsection{Interprete}
+\label{bs_ss}
+Vi sono due approcci alla definizione della semantica di un linguaggio:
+
+\begin{itemize}
+ \item Approccio \textbf{big-step}:
+ La relazione di transizione descrive in un solo passo \emph{l'intera computazione}.
+ 
+ (le singole operazioni sono descritte nell'albero di derivazione della transizione)
+ 
+ \[n \to n \quad\quad \dfrac{E_1 \to n_1 \quad E_2 \to n_2 \quad n_1 \text{ op }n_2 = n}{E_1 \text{ op }E_2 \to n} \] 
+ \item Approccio \textbf{small-step}: Ogni passo della relazione di transizione esegue \emph{una singola operazione}.
+ 
+ \[ n \to n \quad \quad \dfrac{E_1 \to E_1 '}{E_1 \text{ op }E_2 \to E'_1 \text{ op } E_2} \]
+
+ \[\dfrac{E_2 \to E_2 '}{n \text{ op }E_2 \to n \text{ op } E_2'} \quad \quad \dfrac{n_1 \text{ op } n_1 = n}{n_1\text{ op } n_2 \to n} \]
+ 
+\end{itemize}
+ \paragraph{Metodo sistematico per passare da semantica a codice}
+ \begin{itemize}
+  \item Si fa pattern matching sull'espressione, creando un caso per ogni tipo di nodo dell'AST (nel nostro caso i nodi possono essere \emph{operazioni} o \emph{valori}, le espressioni sono i sottoalberi dell'AST)
+  \item  Si verificano le pre-condizioni delle varie regole (non assiomi), chiamando ricorsivamente l'interprete.
+  \item Quando le pre-condizioni sono verificate, si calcola il risultato della transizione.
+ \end{itemize}
+
+ [Esempi di interprete big-step vs small-step: listing \texttt{[16]} e \texttt{[18]} di ``Introduzione allo sviluppo di interpreti'']
+
+ \section{Interprete del $\lambda$-calcolo}
+ \subsection{Sintassi}
+  \[ e := x \,\,|\,\, \lambda x.e \,\,|\,\, e\,\,e \]
+  
+  \begin{lstlisting}
+   type id = string;;
+   type exp = Var of id | Lam of id * exp | App of exp * exp\end{lstlisting}
+
+ \subsection{Semantica}
+  Realizziamo una versione deterministica della semantica che abbiamo visto:
+  
+   \[ (\lambda x.e_1)e_2 \to  e_1 \{ x:=e_2 \}\]
+ 
+  \[ \dfrac{e_1 \to e'}{e_1e_2 \to e'e_2} \quad\quad\quad \dfrac{e_2 \to e'}{e_1e_2 \to e_1'} \quad\quad\quad \dfrac{e \to e'}{\lambda x.e \to \lambda x .e'}\]
+  
+  Al fine di realizzare un interprete del $\lambda$-calcolo dobbiamo anzitutto implementare l'operazione più complessa della semantica del $\lambda$-calcolo: la \textbf{capture-avoiding substitution}.\smallskip
+ 
+ Partiamo dalla definizione formale:
+ 
+ \[\begin{aligned}
+   x\{x := e\} \quad &\equiv\quad  e\\
+   y\{x := e\} \quad &\equiv\quad  y, \text{ se } y \neq x\\
+   (e_1 e_2)\{x := e\}\quad &\equiv\quad (e_1\{x:=e\})(e_2\{x:=e\})\\
+   (\lambda y.e_1)\{ x:=e \}\quad &\equiv\quad  \begin{cases}
+                                                    \lambda y.(e_1\{ x:=e \}) &\text{se $y \neq x$ e $y \notin FV(e)$}\\
+                                                    \lambda z.((e_1\{ x:=z \})\{ x:=e \}) &\text{se $y \neq x$ e $y \in FV(e)$, z fresca}
+                                               \end{cases}
+  \end{aligned}
+\]
+ 
+ E notiamo che possiamo implementare senza problemi questa definizione tramite il pattern matching, ma è necessario definire un metodo per creare variabili ``fresche'' e per costruire l'insieme (per i nostri scopi basta una lista) delle variabili libere di un'espressione.
+ \newpage
+ \subsubsection{Implementazione di FV}
+ La definizione dell'insieme delle variabili libere è la seguente:
+ 
+\[\begin{aligned}
+   &FV(x) = \{x\}\\
+&FV(e_1 e_2) = FV(e_1) \cup FV(e_2)\\
+&FV(\lambda x.e) = FV(e) \setminus \{x\}\\
+  \end{aligned}
+\]
+
+In OCaml:
+
+\begin{lstlisting}
+let rec fvs e = 
+    match e with
+        | Var x -> [x]
+        | Lam (x, e) -> List.filter (fun y -> x <> y) (fvs e)
+        | App (e_1 e_2) -> (fvs e_1) @ (fvs e_2)
+;;\end{lstlisting}
+\subsubsection{Generatore di id freschi}
+\begin{lstlisting}
+let newvar = 
+    let x = ref 0 in
+        fun () ->
+            let c = !x in 
+            incr x;
+            "v"^(string_of_int x)
+\end{lstlisting}
+
+Ogni volta che è chiamata genera una variabile \texttt{v$n$}, partendo da \texttt{v0}. Riesce a mantenere $x$ poiché è un riferimento ed è sempre nella chiusura della funzione.\smallskip
+
+A questo punto abbiamo tutti i mezzi per implementare la capture avoiding substitution, realizzando tutti i casi tramite il pattern matching (si veda il listing \texttt{[6]} di ``Un interprete del $\lambda$-calcolo'')\medskip
+
+La semantica è implementata usando il \emph{metodo sistematico} descritto in \ref{bs_ss} (si veda il listing \texttt{[8]}). È interessante notare che non è possibile implementare precisamente la semantica non deterministica che abbiamo definito; si deve dare priorità ad una delle regole di valutazione dell'applicazione, e in base all'ordine dei pattern si può scegliere se dare priorità alla riduzione o all'applicazione funzionale.\bigskip
+
+L'implementazione completa dell'interprete mostrato a lezione è reperibile qua:
+
+\texttt{https://www.cs.umd.edu/class/spring2019/cmsc330/lectures/interp.ml}
+
+\newpage
+\section{MiniCaml}
+\subsection{Ambiente}
+\paragraph{Perché il $\lambda$-calcolo non ha l'ambiente?}Nel $\lambda$-calcolo l'ambiente non era necessario, poiché i binding tra identificatori e valori erano implementati tramite la sostituzione\medskip
+
+A differenza dall'interprete del $\lambda$-calcolo, per realizzare l'interprete del \emph{MiniCaml} serve un'implementazione dell'ambiente. Potremmo realizzarlo come:
+\begin{itemize}
+ \item Lista di coppie $(nome, valore)$, \small (non ciò che useremo)
+ \item \normalsize\textbf{Funzione Polimorfa} $\Gamma : Ide -> Value \cup \{Unbound\}$; 
+ 
+ $\Gamma(x)$ denota il valore $v$ associato ad $x$ nell'ambiente, oppure, se non esiste il binding, il valore speciale \emph{Unbound}. La funzione $\Gamma$ può essere estesa con un legame, notazione $\Gamma[x = v]$, e:
+ 
+ \[ \Gamma [x = v](y) = \begin{cases}
+                            v & \text{se }y = x\\
+                            \Gamma(y) &\text{se } y \neq x
+                        \end{cases}
+ \]
+\end{itemize}
+
+\begin{lstlisting}
+ (* 't = tipo dei valori esprimibili *)
+ type 't env = ide -> 't;; 
+ (* ambiente vuoto *)
+ let emptyenv = fun x -> Unbound;;
+ 
+ (* aggiornamento ambiente s con (x, v) *)
+ let bind s x v = 
+    fun i -> if (i = x) then v else (s i);;
+\end{lstlisting}
+{\it
+\paragraph{Nota} Il tipo dell'ambiente è polimorfo perché sarà definito in mutua ricorsione con il tipo dei valori esprimibili (\texttt{Closure} e \texttt{RecClosure}, vedi \ref{closure})
+}
+\subsection{Il linguaggio}
+\label{il_ling}
+\begin{lstlisting}
+type ide = string
+type exp =
+    | CstInt of int                 (* costante Int *)
+    | CstTrue                       (* costante True *)
+    | CstFalse                      (* costante False *)
+    | Sum of exp * exp
+    | Diff of exp * exp
+    | Prod of exp * exp
+    | Div of exp * exp
+    | Eq of exp * exp
+    | Iszero of exp
+    | Or of exp * exp
+    | And of exp * exp
+    | Not of exp
+    | Den of ide                    (* Entita' denotabile (variabile) *)
+    | Ifthenelse of exp * exp * exp
+    | Let of ide * exp * exp        (* Dichiarazione di ide: modifica ambiente *)
+    | Fun of ide list * exp         (* Astrazione di funzione *)
+    | Apply of exp * exp list       (* Applicazione di funzione *)
+\end{lstlisting}
+
+Si noti che \texttt{Fun} ha come ``ramo argomenti'' una lista; questa è la lista dei parametri. In realtà questa parte sarà semplificata, e useremo funzioni di una sola variabile.\smallskip
+\newpage
+
+\subsection{Espressioni}
+
+Per il momento lavoriamo solo con le espressioni, (fino a riga 16 del listing in \ref{il_ling}). Dato che abbiamo più di un tipo di dato esprimibile, dobbiamo fare del \textbf{typechecking}.
+\setlength\columnsep{20pt}
+\begin{multicols}{2}
+\textbf{Valori esprimibili / descrittori di tipo}
+\begin{lstlisting}
+ (* Possibili risultati delle valutazioni di espressioni *)
+ type evT = Int of int
+          | Bool of bool
+          | Unbound
+\end{lstlisting}
+
+\textbf{Tipi esistenti}
+\begin{lstlisting}
+type tname = 
+ | TInt
+ | TBool
+ | ...
+ | ...
+\end{lstlisting}
+
+\end{multicols}
+
+Tramite il typechecking vogliamo vedere se un descrittore di tipo ha effettivamente il tipo che vogliamo: controlliamo perciò una \textbf{coppia \texttt{(type, typeDescriptor)}}.\smallskip
+
+\textbf{Codice del typechecking}
+\begin{multicols}{2}
+
+\begin{lstlisting}
+let typecheck (type, typeDescriptor) =
+    match type with
+    | TInt ->
+        (match typeDescriptor with
+            | Int(u) -> true
+            | _ -> false)
+    | TBool ->
+        (match typeDescriptor with
+            | Bool(u) -> true
+            | _ -> false)
+    | _ -> failwith ("not a valid type");;
+
+\end{lstlisting}
+\begin{itemize}
+ \item Se il tipo è int:
+ \begin{itemize}
+  \item Se il typeDescriptor matcha un intero, allora il tipo corrisponde
+  \item Se no non corrisponde
+ \end{itemize}
+ \item Se il tipo è bool:
+ \begin{itemize}
+  \item Se il typeDescriptor matcha un booleano, allora il tipo corrisponde
+  \item Se no non corrisponde
+  \item[]
+ \end{itemize}
+\end{itemize}
+
+\end{multicols}
+\paragraph{Implementazione delle operazioni di base} Le operazioni sono implementate come funzioni:
+\begin{lstlisting}
+let is_zero x = match (typecheck(TInt,x), x) with
+    | (true, Int(y)) -> Bool(y=0)
+    | (_, _) -> failwith("run-time error");;
+    
+let int_eq(x,y) =
+    match (typecheck(TInt,x), typecheck(TInt,y), x, y) with
+    | (true, true, Int(v), Int(w)) -> Bool(v = w)
+    | (_,_,_,_) -> failwith("run-time error ");;
+    
+let int_plus(x, y) =
+    match(typecheck(TInt,x), typecheck(TInt,y), x, y) with
+    | (true, true, Int(v), Int(w)) -> Int(v + w)
+    | (_,_,_,_) -> failwith("run-time error ");;
+\end{lstlisting}
+
+Quindi la funzione \texttt{eval}, che prenderà come parametri un'espressione el'ambiente, sarà del tipo:
+\begin{lstlisting}
+ let rec eval (e:exp) (amb: evT env) =
+    match e with
+        | CstInt(n) -> Int(n)
+        | CstTrue -> Bool(true)
+        | CstFalse -> Bool(false)
+        | Iszero(e1) -> is_zero(eval e1 amb)
+        | Eq(e1, e2) -> int_eq((eval e1 amb), (eval e2 amb))
+        | Sum(e1, e2) -> int_plus ((eval e1 amb), (eval e2 amb))
+        | ...
+\end{lstlisting}\smallskip
+\textbf{Binding di identificatori}
+
+
+Per coprire anche il caso di \texttt{e = Den i} (entità denotabile), aggiungiamo anche
+
+\begin{lstlisting}
+ Den (i) -> amb i
+\end{lstlisting}
+Che restituisce il valore associato all'identificatore \texttt{i} nell'ambiente \texttt{amb}.
+
+\newpage
+\paragraph{If then else}
+L'if viene implementato, a differenza delle altre espressioni, con una strategia \emph{non-eager} (per evitare di valutare il ramo che non ci interessa, che e.g. potrebbe non terminare)
+\begin{lstlisting}
+ Ifthenelse(cond,e1,e2) ->
+let g = eval cond amb in
+match (typecheck("bool", g), g) with
+| (true, Bool(true)) -> eval e1 amb
+| (true, Bool(false)) -> eval e2 amb
+| (_, _) -> failwith ("nonboolean guard")
+\end{lstlisting}
+
+\subsection{Variabili, funzioni}
+\subsubsection{Let: blocco}
+Il \texttt{let x = e1 in e2} valuta l'espressione \texttt{e1}, trasformandola nel valore \texttt v, e calcola l'espressione \texttt{e2} a partire dall'ambiente $\Gamma$ a cui aggiungo il binding \texttt{(x, v)}
+
+\[ \dfrac{\Gamma \triangleright e_1 \to v_1 \quad \quad \Gamma [x = v_1] \triangleright e_2 \to v_2}{\Gamma \triangleright Let (x, e_1, e_2) \to v_2} \]
+
+(dove $\Gamma \triangleright e$ significa ``$e$, valutata nell'ambiente $\Gamma$'')
+
+\paragraph{Nota} L'operazione di estensione \textbf{corrisponde} alla push di un record di attivazione. Per come è implementato l'ambiente, l'estensione crea una nuova \emph{funzione ambiente}, costruita a partire dall'ambiente precedente, che sarà ``dimenticata'' all'uscita del blocco (pop);
+
+\begin{lstlisting}
+ let rec eval((e: exp), (amb: evT env)) =
+    match e with
+    ...
+    ...
+    | Let(i, e, ebody) ->
+        eval ebody (bind amb i (eval e amb))
+\end{lstlisting}
+
+\subsubsection{Funzioni}
+Consideriamo le funzioni con un solo parametro:
+\begin{center}
+\texttt{Fun of ide * exp} \quad\quad \texttt{Apply of exp * exp}
+\end{center}
+
+Dato che adesso dobbiamo esprimere anche tipi funzione, dobbiamo \textbf{estendere i valori esprimibili}:
+\label{closure}
+\begin{lstlisting}
+type evT = Int of int | Bool of bool | Unbound | Closure of ide * exp * evT env
+\end{lstlisting}
+
+Una \emph{chiusura} avrà perciò la forma \texttt{(x, e, env)}, dove \texttt x è il parametro formale della funzione, \texttt e è il corpo della funzione e \texttt{env} è l'ambiente che era attivo alla definizione della funzione ($\Gamma_{decl}$).\medskip
+
+\textbf{Dichiarazione di funzione:}
+\[ \Gamma \triangleright Fun (x, e) \to Closure (\texttt{"x"}, e, \Gamma) \]
+Vado a \textbf{ripescare la funzione} dall'ambiente (chi è ``Var''? forse Den boh possibile errore nelle slide):
+\[ \Gamma \triangleright Var (\texttt{"f"} \to Closure(\texttt{"x"}, body, \Gamma_{fDecl}))\]
+\textbf{Applicazione di funzione}, dove $v_a$ è il ``valore attuale'' ottenuto valutando il parametro attuale:
+\[ \dfrac{\Gamma \triangleright arg \to v_a\quad \quad \Gamma_{fDecl}[x = v_a] \triangleright body \to v}{\Gamma \triangleright Apply(Den(\texttt{"f"}), arg) \to v} \]
+
+Spiegazione di Milazzo\footnote{meglio di mille spiegazioni mie -- (dalle slide ``MiniCAML\_parte1'')}:
+
+\begin{quote}\it
+ Il corpo della funzione viene valutato nell’ambiente
+ottenuto legando il parametro formale al valore del parametro
+attuale nell’ambiente nel quale era stata valutata l’astrazione.
+\end{quote}
+
+\newpage
+\textbf {Implementazione: funzioni}
+\begin{lstlisting}
+let rec eval (e: exp) (amb: evT env) =
+    match e with
+        | ...
+        | Fun(i, a) -> Closure(i, a, amb)
+        | Apply(Den(f), eArg) ->
+            let fclosure = amb f in
+            (match fclosure with
+                | Closure(arg, fbody, fDecEnv) ->
+                    let aVal = eval eArg amb in
+                    let aenv = bind fDecEnv arg aVal in
+                        eval fbody aenv
+                | _ -> failwith("non functional value"))
+        | Apply(_,_) -> failwith("Application: not first order function") ;;
+\end{lstlisting}
+
+\paragraph{Nota sullo scoping dinamico} La differenza tra \textbf{scoping statico} e \textbf{scoping dinamico} è che con lo scoping statico l'ambiente è costruito in base \emph{alla struttura del programma} (\underline{come nel nostro caso}), mentre con lo scoping dinamico l'ambiente è costruito in base \emph{al flusso del codice}; quest'ultimo è più semplice da implementare, basterebbe infatti usare l'ambiente corrente invece di $\Gamma_{fDecl}$. \smallskip
+
+Devo perciò modificare \texttt{evT}, sostituendo \texttt{Closure} con \texttt{Funval of ide * exp}, non c'è più bisogno dell'ambiente.
+
+\subsection{Funzioni ricorsive}
+\subsubsection{Let rec}
+Definiamo un costrutto \texttt{let rec}, che allo stesso tempo ha la funzione di creare un blocco e di creare una funzione con nome:
+\begin{lstlisting}
+ type exp =
+    ...
+    | Letrec of ide * ide * exp * exp
+\end{lstlisting}
+
+In particolare: \texttt{Letrec("f", "x", fbody, letbody)}, dove $f$ è il nome della funzione, $x$ è il parametro formale, $fbody$ è il corpo della funzione, e $letbody$ è il corpo del let.
+
+\subsubsection{Valori esprimibili}
+Dobbiamo estendere ulteriormente i valori esprimibili:
+\begin{lstlisting}
+ type evT = | Int of int | Bool of bool
+            | Unbound | Closure of ide * exp * evT env
+            | RecClosure of ide * ide * exp * evT env
+\end{lstlisting}
+ $\implies$ \texttt{RecClosure(funName, param, funBody, staticEnvironment)}\smallskip
+
+Si noti che RecClosure in realtà esprime semplicemente la chiusura di una funzione con nome, che può benissimo anche non essere ricorsiva.
+
+\subsubsection{Codice dell'interprete}
+Il codice dell'interprete è simile a quello delle funzioni anonime non ricorsive, ma valuto \texttt{letbody} nell'ambiente $\Gamma[f = RecClosure(f, i, fBody, amb)]$, per rendere possibile la ricorsione:\smallskip
+
+\textbf{Dichiarazione di funzione ricorsiva:}
+\begin{lstlisting}
+...
+| Letrec(f, i, fBody, letBody) ->
+    let benv =
+        bind amb f (RecClosure(f, i, fBody, amb))
+            in eval letBody benv
+...
+\end{lstlisting}
+
+\newpage
+\textbf{Applicazione di funzione ricorsiva}
+
+\begin{lstlisting}
+| Apply(Den f, eArg) ->
+    let fclosure = amb f in
+        match fclosure with
+            | Closure(arg, fbody, fDecEnv) ->
+                ...
+                ...
+            | RecClosure(f, arg, fbody, fDecEnv) ->
+                let aVal = eval eArg amb in
+                    let rEnv = bind fDecEnv f fclosure in
+                        let aEnv = bind rEnv arg aVal in
+                            eval(fbody, aEnv)
+        | _ -> failwith("non functional value")
+| Apply(_,_) -> failwith("not function")
+\end{lstlisting}
+
+Unica differenza dalle funzioni non ricorsive: bind di $f$ nell'ambiente \texttt{(9)} prima del bind dell'argomento.
+
+\subsection{Funzioni di ordine superiore}
+Per ora non possiamo passare funzioni come argomento, ossia trattarle come valori di prima classe.\smallskip
+
+Per ora, infatti, (si veda riga \texttt{(5)} del listing in \ref{closure}) la apply deve avere la forma \texttt{Apply (Den (f), eArg)}, se no si ha un errore a runtime (\emph{``not first order function''}). \medskip
+
+Per risolvere basta:
+\begin{itemize}
+ \item Accettare anche espressioni \texttt{eF} 
+ \item Valutarle prima di fare il patternmatching con le chiusure.
+
+\end{itemize}
+\begin{lstlisting}
+| Apply(eF, eArg) ->
+    let fclosure = eval eF amb in
+        (match fclosure with
+            | Closure(arg, fbody, fDecEnv) ->
+                let aVal = eval eArg amb in
+                    let aenv = bind fDecEnv arg aVal in
+                        eval fbody aenv
+            | RecClosure(f, arg, fbody, fDecEnv) ->
+                let aVal = eval eArg amb in
+                    let rEnv = bind fDecEnv f fclosure in
+                        let aenv = bind rEnv arg aVal in
+                            eval fbody aenv
+            | _ -> failwith("non functional value")) ;;
+\end{lstlisting}
+\newpage
+\subsection*{Esempio Run-Time Stack}
+Si fornisce adesso un'idea di come funzionano i record di attivazione per i linguaggi non interpretati:
+
+\begin{itemize}
+ \item Un record di attivazione consiste di uno Static Link (catena statica), che punta al record di attivazione del chiamante, e di un valore (valore aggiunto all'ambiente)
+ \item Se il valore non è funzionale, si mantiene nello stack
+ \item Se il valore è funzionale (\textbf{non ricorsivo}), si mantiene una coppia \texttt{<f, A>}, dove $f$ è un puntatore al codice della funzione, ed $A$ è una copia dello static link, ossia un puntatore all'ambiente in cui dobbiamo eseguire la funzione.
+ \item Se il valore funzionale è \textbf{ricorsivo}, non possiamo eseguire la funzione nel record di attivazione puntato dallo static link: dobbiamo copiare un puntatore al record di attivazione corrente, in cui è definito il nome della funzione.
+\end{itemize}
+
+\textbf{Problema}: Che succede se una funzione cerca di restituire un valore funzionale?\smallskip
+
+\emph{Il RdA che contiene l'ambiente a cui quella funzione fa riferimento potrebbe essere stato cancellato!} 
+
+$\implies$ \textbf{Soluzione}: mettiamo un flag ai record di attivazione, che indica se quel RdA è in uso; in tal caso non lo cancelliamo.
+
+
+
+\end{document}

@@ -1,0 +1,175 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{MnSymbol}
+\usetikzlibrary{patterns.meta}
+\setlength{\parindent}{0em}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\cnot}{\centernot}
+
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language=caml,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\bfseries,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+ 
+
+\begin{center}
+    \LARGE Giorno 1
+    
+    \Large Macchine Astratte, Linguaggi, Interpretazione, Compilazione
+\end{center}\smallskip
+
+\begin{abstract}
+    Una macchina astratta, associata ad un linguaggio, rappresenta il comportamento di una macchina fisica; Può essere implementata su una macchina fisica per realizzare un interprete del linguaggio associato, eventualmente realizzando macchine intermedie, usate anche dai compilatori per il run-time support. Le fasi della compilazione si dividono in front end e back end: la front end consiste di scanner (che genera i token) e parser (che genera gli AST), mentre la back end genera il codice.
+\end{abstract}
+
+\section{Macchine Astratte}
+Una macchina astratta è un sistema virtuale che rappresenta il comportamento di una macchina fisica, individuando:
+\begin{itemize}
+ \item L'insieme delle \textbf{risorse} necessarie per l'esecuzione dei programmi
+ \item Un insieme di \textbf{istruzioni} specificatamente progettato per operare con queste risorse.
+\end{itemize}
+
+\paragraph{Alcuni esempi di macchinie astratte:}
+\begin{itemize}
+ \item \textbf{Algol Object Code}: Macchina astratta per Algol60.
+ \begin{itemize}
+  \item \emph{Risorse}: Stack, Heap, Program Store
+  \item \emph{Istruzioni}: Accesso a variabili e array, scope per variabili e procedure, call by name, call by value
+ \end{itemize}
+ 
+ \item \textbf{Smalltalk-80}: Linguaggio a oggetti compilato su macchina astratta \emph{stack based}
+ \begin{itemize}
+  \item \emph{Risorse}: Stack
+  \item \emph{Istruzioni}: Bytecode per manipolazione dello stack, bytecode per invocazione di metodi, accesso a variabili di istanza di oggetti...
+ \end{itemize}
+ \item \textbf{Python}: macchina astratta stack-based con numerose istruzioni di base
+ 
+\end{itemize}
+
+\paragraph{Macchine astratte per linguaggi funzionali:} Sono caratterizzazte da:
+\begin{itemize}
+ \item Stack, per gestire chiamate di funzioni
+ \item Environment, per gestire associazione tra variabili e valori
+ \item Closure, per rappresentare il valore di una funzione
+ \item Heap Garbage collector, per la gestione della memoria dinamica.
+\end{itemize}
+
+\subsection{Stack machine e bytecode}
+
+\subsubsection{Stack machine}
+Una stack machine è una macchina che è capace, ad esempio, di valutare un'espressione in notazione polacca inversa, utilizzando come uniche operazioni di accesso a memoria \texttt{push} e \texttt{pop}.
+
+\subsubsection{Bytecode}
+Un bytecode è un linguaggio intermedio tra linguaggio macchina e linguaggio di programmazione, usato per descrivere le operazioni che costituiscono un programma.
+
+
+\newpage\subsection{Struttura di una macchina astratta}
+Una macchina astratta è costituita da:
+\begin{itemize}
+ \item Un \textbf{interprete}, ossia un programma che prende in ingresso il programma da eseguire (il suo \emph{albero di sintassi astratta}) e lo esegue ispezionando la sua struttura.
+ \item Una memoria (dati e programmi)
+ \item Controllo
+ \item Operazioni primitive
+\end{itemize}
+
+\subsubsection{Linguaggio macchina di una macchina astratta}
+Data una macchina astratta $M$, il linguaggio $L_M$ è il linguaggio che ha come stringhe legali tutti i programmi interpretabili dall'interprete di $M$.
+
+\subsubsection{Implementazione di macchine astratte}
+L'implementazione di una macchina astratta $M$ consiste nella realizzazione di $M$ all'interno di un'altra macchina detta \textbf{macchina ospite} $M_O$, il cui linguaggio è utilizzato per descrivere le componenti di $M$.
+
+\subsubsection{Interpretazione vs Compilazione}
+Un linguaggio \emph{interpretato} viene eseguito sulla relativa macchina astratta $M$, che lavora sulla macchina ospite.\smallskip
+
+Un linguaggio \emph{compilato} viene tradotto direttamente nel linguaggio macchina della macchina ospite, sulla quale verranno eseguiti direttamente, e quindi \textbf{non è necessario realizzare la macchina astratta}.
+
+\subsubsection{Macchine intermedie}
+Talvolta si realizza una \emph{macchina intermedia}, che aggiunge un \emph{supporto a tempo di esecuzione} ad $M_O$, ossia una collezione di strutture dati e sottoprogrammi che permette l'esecuzione del codice prodotto dal compilatore (e.g. gestione stack, gestione memoria (malloc), codice di debugging)
+
+\subsubsection{Ricapitolando}
+Ci sono tre famiglie di implementazioni:
+\begin{itemize}
+ \item \textbf{Interprete puro}:
+ \begin{itemize}
+  \item La macchina astratta corrisponde alla macchina intermedia
+  \item L'interprete del linguaggio di $M$ è realizzato su $M_0$
+  \item Implementazioni vecchie di alcuni linguaggi logici e funzionali, e.g. LISP, PROLOG
+ \end{itemize}
+ \item \textbf{Compilatore}
+\begin{itemize}
+ \item Macchina intermedia per estendere la macchina ospite con run-time support
+\end{itemize}
+\item implementazione mista
+\begin{itemize}
+ \item I programmi sono tradotti dal linguaggio di $M$ a quello della macchina intermedia (bytecode)
+ \item I programmi in bytecode sono interpretati dalla macchina ospite (Java)
+\end{itemize}
+\end{itemize}
+\newpage
+\section{Struttura di un compilatore}
+\subsection{Fasi della compilazione}
+La compilazione si può dividere in due ``macrofasi'': la fase \textbf{front end}, che consiste nell'analisi del programma sorgente e della determinazione della sua struttura sintattica e semantica, e la fase \textbf{back end}, che consiste nella generazione del linguaggio macchina.\smallskip
+
+Le vere e proprie fasi della compilazione sono:
+\begin{itemize}
+ \item \textbf{Scanner} (analisi lessicale) Genera dei \emph{token} a partire dal programma sorgente. I token consistono in: 
+ \begin{itemize}
+  \item Parole chiavi (if, while...)
+  \item operatori, punteggiatura, parentesi...
+  \item identificatori e costanti
+ \end{itemize}
+Esempio:
+\begin{center}
+ \texttt{if(x >= y) y = 42;} 
+ 
+ $\downmapsto$ 
+ 
+ $[IF][LPAR][ID(x)][GEQ][ID(y)][RPAR][ID(y)][BECOMES][INT(42)][SCOLON]$
+\end{center}
+
+ \item \textbf{Parser} (analisi sintattica) Legge i token, genera albero di sintassi astratta [ok]
+ 
+ \paragraph{Ambiguità}
+Se non si definisce la precedenza degli operatori, si possono avere più alberi di sintassi astratta diversi per lo stesso programma.
+\item \textbf{Generazione del codice} (back end).
+\end{itemize}
+
+\subsection{Parser a discesa ricorsiva}
+Spiegazione dettagliata in Giorno 2.
+
+\subsection{AST in Java}
+[Struttura albero con programmazione ad oggetti, sulle slide esempio di rappresentazione di albero in javascript, ok]
+\subsection{Analisi statica}
+[Taint analysis, vedi slide]
+\end{document}

@@ -1,0 +1,198 @@
+ 
+ 
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{MnSymbol}
+\usetikzlibrary{patterns.meta}
+\setlength{\parindent}{0em}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\cnot}{\centernot}
+
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language=java,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\bfseries,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+
+\begin{center}
+    \LARGE Giorno 5\smallskip
+
+    \Large OOP: Java
+\end{center}\smallskip
+
+\section{Java}
+\subsection{Struttura di un programma Java}
+Un programma Java è \emph{un insieme di classi}. 
+\begin{itemize}
+ \item In linea di principio: ogni classe in un file diverso
+ \item Una delle classi dovrà avere un metodo \emph{main} da cui parte l'esecuzione del programma.
+\end{itemize}
+\subsubsection{Hello World}
+\begin{lstlisting}
+ public class HelloWorld {
+    public static void main (String [] args) {
+        System.out.println("Hello World !");
+    }
+ }
+\end{lstlisting}
+\subsubsection{Nucleo imperativo}
+Tutto uguale a C, tranne il fatto che non ci sono puntatori, gli array hanno una sintassi diversa:
+\begin{lstlisting}
+ int[] numeri;      // attenzione alle parentesi:
+                    // "int numeri[]" e' sbagliato
+ // inizializzazione
+ numeri = new int[10];  // dimensione 10 e valori di default (0)
+ numeri = {5,3,2,6};    // dimensione 4 e valori 5,3,2 e 6
+ 
+ // anche insieme
+ int[] numeri = new int[10
+\end{lstlisting}
+
+e il tipo \texttt{String} è in realtà una speciale classe di libreria; la concatenazione si fa con $+$, come se fosse un tipo primitivo.
+
+\subsection{Classi}
+\begin{lstlisting}
+ class Name {
+    public ...
+    private ...
+    public static ...
+ }
+\end{lstlisting}
+
+\begin{itemize}
+ \item \texttt{public}: l'attributo/metodo si può accedere anche dall'esterno della classe
+ \item \texttt{private}: l'attributo/metodo non si può accedere dall'esterno
+ \item \texttt{static}: un metodo statico può essere chiamato senza istanziare la classe.
+ \item ... \textbf{final, abstract, transient, synchronized, volatile}
+\end{itemize}
+\subsubsection{Incapsulamento}
+I modificatori \texttt{public} e \texttt{private} consentono di realizzare sistemi di \emph{incapsulamento} (i.e. la rappresentazione dell'oggetto rimane nascosta/privata, l'accesso dall'esterno è consentito solo attraverso un certo numero di metodi pubblici)\smallskip
+
+Si possono definire anche \emph{metodi privati}, utilizzabili all'interno della classe (metodi ausiliari).\newpage
+
+\subsection{Interfacce}
+Un'interfaccia contiene le intestazioni dei membri pubblici di una classe e non contiene costruttori:
+\begin{lstlisting}
+ public interface BankAccount {                         // interface, non class
+    public double getSaldo();
+    public void versa(double somma);
+    public boolean preleva(double somma);
+ }
+\end{lstlisting}
+
+Per implementare un'interfaccia in una classe si scrive:
+\begin{lstlisting}
+ public class ContoCorrente implements BankAccount {    // implements!
+    private double saldo;
+    public ContoCorrente(double saldoIniziale) { ... }
+    public void versa(double somma) { ... }
+    public double getSaldo() { return saldo; }
+    public boolean preleva(double somma) {
+        if (saldo>=somma) { ... }
+        else return false;
+    }
+ }
+\end{lstlisting}
+
+\textbf{Nessun costruttore!} Se ne usa uno di default e senza parametri che inizializza le variabili come da dichiarazione, oppure (se la dichiarazione non
+prevede un assegnamento) a valori standard.
+
+\subsubsection{A che serve implements?}
+Usando \texttt{BankAccount} come tipo, abbiamo appena definito la relazione di sottotipo:
+\[\texttt{ContoCorrente <: BankAccount}\]
+\subsubsection{implementare più interfacce}
+Una classe può implementare più interfacce:
+\begin{lstlisting}
+ public class ContoFlessibile implements BankAccount,DepositAccount {...}
+\end{lstlisting}
+Si avrà: 
+\[\texttt{ContoFlessibile <: BankAccount\quad\quad ContoFlessibile <: DepositAccount}\]
+
+\subsection{Tipo apparente e tipo effettivo}
+
+\begin{itemize}
+ \item Il Tipo Apparente (o \textbf{statico}) è il tipo usato dal compilatore per fare i controlli;
+ \item Il Tipo Effettivo (o \textbf{dinamico}) è il tipo che l'oggetto avrà a runtime.
+\end{itemize}
+
+E.g. Dichiaro due variabili di tipo \texttt{BankAccount}, istanze di due diversi sottotipi di BankAccount:
+
+\begin{lstlisting}
+ BankAccount conto1 = new ContoCorrente(1000);
+ BankAccount conto2 = new ContoLimitato(200,10);
+\end{lstlisting}
+
+Il \textbf{tipo apparente} di entrambe è \texttt{BankAccount}, mentre i \textbf{tipi effettivi} sono \texttt{ContoCorrente} e \texttt{ContoLimitato}.
+
+\subsubsection{Cast/Coercion}
+\begin{itemize}
+ \item Il cast da sottotipo a supertipo (\textbf{upcast}) è implicito
+ \item Il cast da supertipo a sottotipo (\textbf{downcast}) deve essere esplicito (stessa sintassi di C).
+\end{itemize}
+
+In OCaml il downcast non è possibile.
+
+
+
+\newpage
+\subsection{Membri statici e d'istanza}
+\begin{itemize}
+ \item I membri (variabili e metodi) \textbf{d'istanza} sono quelli che codificano lo stato di \textbf{un singolo oggetto} (un'\textbf{istanza} della classe)
+ \item I membri \textbf{statici} codificano operazioni \textbf{di classe} (non operano sullo stato dei singoli oggetti).
+\end{itemize}
+
+\subsubsection{Esempio di utilizzo}
+Se vogliamo assegnare un numero univoco ad ogni oggetto di una classe, si utilizzano una \textbf{variabile d'istanza} per mantenere il numero del singolo oggetto ed una \textbf{variabile statica} per mantenere il conto dei numeri assegnati (e.g. mantenere il numero di oggetti istanziati, se assegnamento lineare)
+
+\subsection{Modello della memoria}
+Identifichiamo tre aree nella JVM:
+\begin{itemize}
+ \item \textbf{Ambiente delle classi - Workspace}, che contiene il codice dei metodi e le variabili statiche
+ \item \textbf{Stack}, contiene i RdA dei metodi con le variabili locali
+ \item \textbf{Heap}, contiene gli oggetti (raggiungibili tramite \textbf{riferimenti}), con le loro variabili d'istanza
+\end{itemize}
+
+\subsubsection{Descrizione del funzionamento}
+
+\begin{itemize}
+ \item Inizialmente le classi sono caricate nell'ambiente delle classi 
+ \item Poi il RdA del metodo main è caricato nello stack
+ \item Gli oggetti creati con \textbf{new} dal metodo \texttt{main} (e poi quelli creati dai metodi degli oggetti chiamati da \texttt{main}, ecc.) sono caricati nello heap, e mantenuti per riferimento dai RdA
+ \item I RdA dei metodi chiamati dagli oggetti vengono caricati nello stack.
+\end{itemize}
+
+
+
+
+\end{document}

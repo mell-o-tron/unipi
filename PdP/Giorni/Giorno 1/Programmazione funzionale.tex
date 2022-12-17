@@ -1,0 +1,695 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{courier}
+\usetikzlibrary{patterns.meta}
+\setlength{\parindent}{0em}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\cnot}{\centernot}
+
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language=caml,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\bfseries,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+\begin{center}
+    \LARGE Giorno 1
+    
+    \Large Programmazione Funzionale
+\end{center}\smallskip
+
+\begin{abstract}
+
+ La programmazione funzionale è basata su \emph{computazioni senza stato}, che procedono invece mediante \emph{riscritture} di espressioni. Senza stato non c'è iterazione, quindi l'unico costrutto per il controllo di sequenza è la ricorsione. Sono presentati gli aspetti generali della programmazione funzionale, il $\lambda$-calcolo e degli esempi di estensioni tipate di questo ($\lambda$-calcolo tipato semplice, PCF)
+\end{abstract}
+
+\section{Aspetti generali}
+\subsection{Dichiarazione e applicazione}
+\begin{enumerate}
+ \item Sia $f(x) = x^2$ la funzione che associa ad $x$ il suo quadrato; 
+ \item Allora $f(2) = 4$.
+
+\end{enumerate}
+
+In (1) l'espressione sintattica $f(x)$ è usata per introdurre il nome della funzione \emph{anonima} $x \mapsto x^2$, mentre in (2) indica il risultato dell'\emph{applicazione} di $f$ ad uno specifico valore.\smallskip
+
+Per distinguere tra nome e corpo della funzione, scriviamo (in OCaml):
+
+\begin{itemize}
+ \item \textbf{Dichiarazione di funzione:}
+\begin{lstlisting}
+ let f = (fun x -> x * x) in
+\end{lstlisting}
+
+Dove \texttt{fun x -> x * x} si dice \emph{astrazione}.
+\lstset{firstnumber=last}
+\item \textbf{Applicazione di funzione}
+\begin{lstlisting}
+ f(2);;   (* Stampa 4 *)
+\end{lstlisting}
+\end{itemize}
+
+Si noti che \underline{le parentesi non sono necessarie}, avrei potuto infatti scrivere semplicemente \texttt{f 2}.
+
+\subsection{Funzioni di ordine superiore, currying}
+
+Le funzioni possono prendere come argomenti, o restituire, altre funzioni. Ad esempio si possono dichiarare funzioni ``di più parametri'' (currying) scrivendo:
+
+\begin{lstlisting}
+ let f = (fun x -> fun y -> x*y);;
+\end{lstlisting}
+
+Ossia la funzione $f(x, y) = xy$, scritta come: \[f : x \mapsto (y \mapsto (x \cdot y)) \] \texttt{f} si può applicare scrivendo, ad esempio:
+
+\begin{itemize}
+ \item ``\texttt{f 5 (6)}'' (si ricordi che \texttt{f 5} è la funzione $y \mapsto 5y$)
+ \begin{multicols}{3}
+ \item ``\texttt{(f 5) 6}''
+ \item ``\texttt{(f 5) (6)}''
+ \item ``\texttt{f 5 6}''
+ \end{multicols}
+ \end{itemize}
+\subsection{Computazione come riduzione}
+\label{com_com_rid}
+Un linguaggio funzionale è costituito esclusivamente da espressioni.\smallskip
+
+La valutazione di un'espressione consiste in una riscrittura (\emph{= riduzione}) di questa, che avviene sostituendo testualmente una sottoespressione del tipo ``funzione applicata ad un argomento'' con il corpo della funzione in cui si sostituiscono le occorrenze del parametro formale con il parametro attuale, e.g.
+
+\begin{multicols}{2}
+
+\begin{center}
+Sia $f$ = \texttt{(fun x -> x * x)}
+\end{center}
+
+
+\begin{center}
+ \texttt{f 5} \quad $\to$ \quad \texttt{(x * x) (5)} \quad $\to$ \quad \texttt{5 * 5}
+\end{center}
+\end{multicols}
+
+\subsubsection{Redex}
+
+Un Redex è una \emph{espressione riducibile}, ossia un'applicazione della forma \texttt{(fun x -> corpo) arg}
+\begin{itemize}
+ \item Il \emph{ridotto} di un redex è l'espressione che si ottiene sostituendo i parametri \texttt{x} del corpo con \texttt{arg}.
+ \item $\beta$-regola: Se in un'espressione \texttt{exp1} compare come sottoespressione un redex, \texttt{exp1} si riduce nell'espressione \texttt{exp2} in cui il redex è sostituito con il suo ridotto.
+\end{itemize}
+\newpage
+\subsection{Valutazione}
+\begin{itemize}
+ \item \textbf{Valori}: Si dice \emph{valore} un'espressione che non deve essere ulteriormente riscritta. Un valore può essere primitivo o funzionale.
+ \item \textbf{Capture-avoiding substitution}: Lo stesso nome non è mai dato a variabili distinte (variabili ``fresche'', vd. esempio nella parte sul $\lambda$-calcolo)
+ \item \textbf{Strategie di valutazione}: 
+ \begin{itemize}
+  \item[$\circ$] \textbf{Valutazione eager} -- \emph{call by value}, un redex è valutato solo se la sua parte argomento è un valore: si valuta quindi l'espressione del parametro attuale\emph{prima di essere associata al parametro formale}.
+  \item[$\circ$] \textbf{Valutazione normale} -- \emph{call by name}, in ``ordine normale''; Un redex è valutato prima della sua parte argomento: l'espressione del parametro attuale \emph{non viene valutata
+prima di essere associata al parametro formale}.
+ \end{itemize}
+
+\end{itemize}
+
+\section{$\lambda$-calcolo}
+
+\subsection{Sintassi}
+Un programma è un'espressione:
+\[ \begin{aligned}
+        e::= & \,x \\&| \lambda x.e \\&| e e
+        \end{aligned}\quad\quad
+    \begin{aligned}
+     &\text{Variabile}\\ &\text{Astrazione (fun dec)}\\ &\text{Applicazione (fun call)} 
+    \end{aligned}
+ \]
+
+ Regole d'inferenza: 
+ \begin{multicols}{3}
+ \centering
+ \it Variabile:\bigskip
+ 
+ $ \dfrac{x \in Var}{x \in Exp} $
+ 
+ Astrazione:\bigskip
+ 
+ $ \dfrac{x \in Var \quad e \in exp}{\lambda x.e \in Exp} $
+ 
+ Applicazione:\bigskip
+ 
+ $\dfrac{e_1 \in Exp \quad e_2 \in Exp}{e_1e_2 \in Exp}$
+ \end{multicols}
+
+Convenzioni sintattiche:
+\begin{multicols}{2}
+ 
+\begin{itemize}
+ \item Lo scope del $\lambda$ si estende il più a destra possibile: 
+ \[\lambda x .\lambda y.xy = \lambda x.(\lambda y.(xy))\]
+ \item L'applicazione associa a sinistra: \[e_1e_2e_3 = (e_1e_2)e_3\]
+\end{itemize}
+\end{multicols}
+
+Aggiungiamo le \textbf{operazioni aritmetiche} e le \textbf{costanti numeriche} al lambda calcolo per semplificare.
+ 
+\subsection{Variabili libere e legate}
+Il $\lambda$ in $\lambda x.e$ agisce da operatore di \emph{binding}, cioè lega la variabile $x$ nell'espressione $e$. La variabile $x$ può essere sostituita da un'altra variabile \emph{fresca} (dove fresca = nuova, diversa in nome da tutte le altre che stiamo trattando) ed il programma rimane lo stesso. \bigskip
+
+\textbf{Definizione:} Una variabile introdotta (dichiarata) da un $\lambda$ si dice \textbf{legata} da quel $\lambda$.\bigskip
+
+\textbf{Definizione:} Una variabile che non è associata a nessun $\lambda$ si dice \textbf{libera}.\bigskip
+
+\textbf{Definizione:} Si dicono \textbf{$\alpha$-equivalenti} due espressioni uguali a meno della sostituzione di una variabile legata con una variabile fresca., e.g.  $\lambda a.(a+1) \equiv_\alpha \lambda b . (b+1)$.\bigskip
+
+\subsubsection{Definizione formale}
+
+L'insieme $FV$ delle variabili libere è definito da:
+
+\[\begin{aligned}
+   &FV(x) = \{x\}\\
+&FV(e_1 e_2) = FV(e_1) \cup FV(e_2)\\
+&FV(\lambda x.e) = FV(e) \setminus \{x\}\\
+  \end{aligned}
+\]
+
+\subsection{Alberi di sintassi astratta}
+ Un albero di sintassi astratta (AST) rappresenta un programma.
+ \begin{itemize}
+  \item Le foglie sono variabili
+  \item Un'astrazione $\lambda x.e$ è un nodo etichettato $\lambda x$ che ha come sottoalbero l'AST di $e$.
+  \item Un'applicazione $e_1 e_2$ consiste di un nodo etichettato $@$ con come sottoalberi sinistro e destro gli AST di $e_1$ ed $e_2$
+ \end{itemize}
+
+ \subsection{Esecuzione}
+ L'esecuzione avviene come descritto in \ref{com_com_rid}; quando si valuta una $\lambda$-espressione $ (\lambda x.e_1)e_2 $ si sostituisce ogni occorrenza di $x$ in $e_1$ con $e_2$ (valutata o meno, dipende se call-by-name o call-by-value).\bigskip
+ 
+ \textbf{Notazione}: La notazione $e_1 \{ x:=e_2 \}$ descrive la $\lambda$-espressione $e_1$ in cui ogni occorrenza della variabile $x$ è sostituita da $e_2$.\bigskip
+ 
+ \textbf{$\beta$-riduzione}: È la regola che cattura precisamente la nozione di applicazione funzionale ($\sim \beta$-regola):
+ \[ (\lambda x.e_1)e_2 \to  e_1 \{ x:=e_2 \}\]
+ \subsubsection{Capture Avoiding Substitution}
+ 
+ 
+ \textbf{Problema}: Se $e_2$ contiene una variabile libera $y$ che è legata in $e_1$, la variabile $y$ potrebbe essere catturata, e l'espressione potrebbe cambiare di significato. E.g.
+ 
+
+ \[(\lambda x . (\lambda y.(x+y))) \underbrace{y}_\text{libera} \to (\lambda y.(x+y))\{ x := y \} \to\underbrace{(\lambda y.(y+y))}_\text{$y$ catturata} \]
+ 
+\textbf{Soluzione}: $e_1$ deve essere $\alpha$-convertita:
+ 
+\[(\lambda y.(x+y))\{ x := y \} \underset{\alpha\text{-conv, $z$ fresh}}\to (\lambda z.(x+z))\{ x := y \} \to \underbrace{(\lambda z.(y+z))}_\text{$y$ libera} \]
+
+\paragraph{Definizione formale della Capture Avoiding Substitution}
+\[\begin{aligned}
+   x\{x := e\} \quad &\equiv\quad  e\\
+   y\{x := e\} \quad &\equiv\quad  y, \text{ se } y \neq x\\
+   (e_1 e_2)\{x := e\}\quad &\equiv\quad (e_1\{x:=e\})(e_2\{x:=e\})\\
+   (\lambda y.e_1)\{ x:=e \}\quad &\equiv\quad  \begin{cases}
+                                                    \lambda y.(e_1\{ x:=e \}) &\text{se $y \neq x$ e $y \notin FV(e)$}\\
+                                                    \lambda z.((e_1\{ x:=z \})\{ x:=e \}) &\text{se $y \neq x$ e $y \in FV(e)$, z fresca}
+                                               \end{cases}
+  \end{aligned}
+\]
+
+ \newpage
+\subsection{Interprete del $\lambda$-calcolo}
+\subsubsection{$\beta$ riduzione, formalmente}
+
+La $\beta$-riduzione ($\to$) è definita da:
+ \[ (\lambda x.e_1)e_2 \to  e_1 \{ x:=e_2 \}\]
+ 
+  \[ \dfrac{e_1 \to e'}{e_1e_2 \to e'e_2} \quad\quad\quad \dfrac{e_2 \to e'}{e_1e_2 \to e_1'} \quad\quad\quad \dfrac{e \to e'}{\lambda x.e \to \lambda x .e'}\]
+\textbf{Definizioni e notazioni}
+
+\begin{itemize}
+ \item Indichiamo con $\implies$ la chiusura riflessiva e transitiva di $\to$
+ \item Una $\lambda$-espressione $e_1$ è \emph{$\beta$-riducibile} alla $\lambda$-espressione $e_2$ se $e_1 \implies e_2$
+ \item Due $\lambda$-espressioni $e_1$, $e_2$ si dicono $\beta$\textbf{-equivalenti} se:
+ \begin{itemize}
+  \item Sono $\alpha$-equivalenti;
+  \item Una delle due è $\beta$-riducibile all'altra ($e_1 \implies e_2 \vee e_2 \implies e_1$);
+  \item Sono entrambe $\beta$-riducibili alla stessa $\lambda$-espressione ($e_1 \implies e \wedge e_2 \implies e$).
+ \end{itemize}
+In altre parole, due $\lambda$-espressioni sono $\beta$-equivalenti quando sono indistinguibili dal punto di vista computazionale: calcolano gli stessi risultati.
+\item Una $\lambda$-espressione si dice in \textbf{forma normale beta} se non è ulteriormente riducibile.
+\end{itemize}
+
+\textbf{Teorema di Church Rosser:} L'ordine in cui vengono scelte le $\beta$-riduzioni non influisce sul risultato finale.
+
+\subsubsection{Non terminazione}
+La $\lambda$-espressione $\Omega = (\lambda x . xx)(\lambda x . xx)$ non può essere ridotta in forma normale, poiché la riduzione produce nuovamente $\Omega$.
+
+\[  (\lambda x . xx)(\lambda x . xx) \to (xx)\{ x := (\lambda x . xx) \} \to (\lambda x . xx)(\lambda x . xx) \]
+
+\subsubsection{Ricorsione: il combinatore Y}
+La ricorsione è implementata tramite la funzione:
+\[ Y = \lambda f.(\lambda x.f(xx))(\lambda x.f(xx)) \]
+che gode della proprietà:
+\[ YF \equiv_\beta F(YF) \]
+
+Infatti:
+
+\[ \begin{aligned}
+    \lambda f.(\lambda x.f(xx))(\lambda x.f(xx)) F \implies &(\lambda x.F(xx))(\lambda x.F(xx))\\
+    \implies &F((\lambda x.F(xx))(\lambda x.F(xx)))\\
+    \equiv_\beta\, &F(YF)
+   \end{aligned}
+ \]
+ \newpage
+ \subsubsection{Costrutti nel $\lambda$-calcolo}
+ \begin{multicols}{2}
+  
+ \begin{itemize}
+  \item Booleani:
+  \begin{itemize}
+   \item True: $\lambda t.\lambda f.t$
+   
+   (tra $t$ e $f$ seleziona il primo)
+   \item False: $\lambda t.\lambda f.f$
+   
+   (tra $t$ e $f$ seleziona il secondo)
+  \end{itemize}
+   
+ \item Condizionale:
+ \[ IF = \lambda \texttt{c}.\lambda \texttt{then}.\lambda \texttt{else}. \texttt{c then else} \]
+ 
+ \begin{itemize}
+ \item Se \texttt{c} è true: 
+ 
+ $(\lambda t.\lambda f.t) \texttt{ then else} \implies \texttt{then}$
+ 
+ \item Se \texttt c è false: 
+ 
+ $(\lambda t.\lambda f.f) \texttt{ then else} \implies \texttt{else}$
+\end{itemize}
+
+ 
+ \end{itemize}
+ \end{multicols}
+
+ \textit{Esempio di Condizionale:}
+ 
+ \[\begin{aligned}
+&(\lambda \texttt{c} .\lambda \texttt{then} .\lambda \texttt{else}. \texttt{c then else}) \,\texttt{true}\, A B\\
+\implies &(\lambda \texttt{then}.\lambda \texttt{else}.(\lambda t.\lambda f.t) \texttt{then else}) A B\\
+\textit{(sosituisco A e B)} \implies &(\lambda t .\lambda f.t)A B \implies (\lambda f.A)B \implies A
+\end{aligned}\]
+
+ 
+ \begin{itemize}
+  \item Numerali di Church:
+  \begin{itemize}
+   \item Si definisce $C_0 = \lambda z. \lambda s . z$\quad\quad (dove $z \sim$ zero ed $s \sim$ $succ$)
+   \item $C_1 = \lambda z.\lambda s.sz$ 
+   \item $C_n = \lambda z.\lambda s . s(s(\hdots (sz)))$
+   \item Funzione \textbf{plus} $= \lambda m.\lambda n.\lambda z.\lambda s.m(n z s)s$\smallskip
+   
+   \textit{Idea:} Facendo $plus (a) (b)$ voglio sostituire il corpo di $a$ alla $z$ nel corpo di $b$:
+   
+   \[ plus (\lambda z .\lambda s. ssz) (\lambda z .\lambda s. sz) \implies (\lambda z .\lambda s. sssz)\]
+  
+  La funzione $plus$ fa proprio questo: \hfill $A = \lambda z.\lambda s. ssz \quad B = \lambda z.\lambda s. sz$ \hfill \,
+  
+  \[\begin{aligned}
+     &(\lambda m.\lambda n.\lambda z.\lambda s.m(n z s)s) A B\\
+     \implies &\lambda z.\lambda s.B(\underline{A z s})s\\
+     \implies &\lambda z.\lambda s.B(ssz)s\\
+     =\,\, &\lambda z.\lambda s.\underline{(\lambda z .\lambda s. sz)(ssz)}s\\
+     \textit(idea) \implies &\lambda z.\lambda s. \underline{(\lambda s.sssz)s}\\
+     \implies &\lambda z. \lambda s. sssz
+    \end{aligned}
+\]
+  \item Funzione \textbf{times} $= \lambda m. \lambda n. m \,\,C_0 (Plus\,\, n)$
+  
+  \textit{Idea}: Sommare $n$ a zero $m$ volte.
+  \end{itemize}
+  
+ \end{itemize}
+
+ \newpage
+
+ \subsubsection{Scoping statico}
+ Il lambda calcolo adotta un meccanismo di scoping statico per definire la visibilità delle variabili. \smallskip
+ 
+ Ad esempio: in  $ (\lambda x.x (\lambda x.x))z$ la $x$ più a destra della variabile si riferisce alla $x$ introdotta nel secondo $\lambda$.
+ 
+ Tramite l'$\alpha$-conversione si ottiene una versione equivalente:
+ 
+ \[ \lambda x.x (\lambda x.x))z \equiv_\alpha \lambda x.x (\lambda y.y))z \]
+ 
+ \subsubsection{Dichiarazioni locali}
+ Le dichiarazioni di variabili locali sono codificate tramite $\lambda$-astrazione e applicazione:
+ \[\texttt{let $x$ = $e_1$ in $e_2$} \,\,\approx \,\, (\lambda x.e_2) e_1\]
+ 
+ \subsubsection{Strutture dati}
+ Si possono rappresentare anche strutture dati, e.g. una coppia $(a, b)$ si può rappresentare come:
+ \[ \lambda x. IF\,\, x\,\, a\,\, b\,\, \]
+ E posso accedere $a$ e $b$ utilizzando le due funzioni:
+ 
+ \[ Fst = \lambda f.f True \hspace{2cm} Snd = \lambda f.f False \]
+ 
+ 
+ \subsubsection{Call-by-Value vs Call-by-Name}
+\begin{itemize}
+ \item Riduzione call-by-value:
+ \[(\lambda x.e_1)v \to e_1\{x := v\}\]
+ \[ \dfrac{e_1 \to e'}{e_1e_2 \to e'e_2} \hspace{2cm} \dfrac{e_2 \to e'}{ve_2 \to ve'} \]
+ 
+ \textit{Idea:} partendo da sinistra, seleziono la prima applicazione $e_1e_2$ e riduco l'espressione $e_1$ finché non è ridotta ad un valore (funzionale), poi valuto la parte argomento $e_2$ e infine applico la funzione.
+ 
+ \item Riduzione call-by-name
+ 
+ \[(\lambda x.e_1 )e_2 \to e_1\{x:=e_2\} \hspace {1.5cm} \dfrac{e_1 \to e'}{e_1e_2 \to e'e_2}\] 
+ 
+  \textit{Idea:} Partendo da sinistra, seleziono l'applicazione $e_1e_2$, riduco $e_1$ ad un valore funzionale ed applico la funzione prima di calcolare il valore dell'argomento $\implies$ \textit{applico la funzione appena possibile}.
+ \item In alcuni casi la call-by-value e la call-by-name possono comportarsi in modo diverso, ad esempio la valutazione dell'espressione:
+ \[\texttt{IF True True}\,\,(\Omega \Omega)\]
+ 
+ Termina e restituisce \texttt{True} se call-by-name (non cerca di valutare $\Omega \Omega$), mentre non termina mai se call-by-value.
+\end{itemize}
+\newpage
+
+\section{Controllo dei tipi}
+Nel $\lambda$-calcolo è possibile scrivere programmi che non sono corretti rispetto all'uso inteso dei valori:
+\[ False \,\,0 = (\lambda t.\lambda f.f)(\lambda z.\lambda s.\lambda z) \to \lambda f.f\]
+
+Questo programma produce un valore, ma non ha senso. Dobbiamo assegnare dei \emph{tipi} ai dati, ossia degli attributi che descrivono come il linguaggio permette di usare quel particolare dato.
+
+\subsection{Sistema dei tipi}
+Un sistema di tipi è un metodo sintattico, effettivo per dimostrare l'assenza di comportamenti anomali del programma strutturando le operazioni del programma in base ai tipi di valori che calcolano.
+\begin{itemize}
+ \item \textbf{Effettivo}: si può definire un algoritmo che calcola un'approssimazione statica dei comportamenti a runtime del programma
+ \item \textbf{Strutturale}: I tipi delle componenti di un programma sono calcolati in modo composizionale, i.e. il tipo di un'espressione dipende solo dai tipi delle sue sottoespressioni
+\end{itemize}
+
+\subsubsection{Esempi}
+[Divisione per zero, js $\to$ ts]
+\subsubsection{Controllo dei tipi}
+Il \emph{type checker} verifica che le intenzioni del programmatore (espresse dalle annotazioni di tipo) siano rispettate dal programma.\smallskip
+
+Il controllo dei tipi può essere statico o dinamico. Se è statico trova gli errori prima dell'esecuzione del programma, e non degrada le prestazioni.
+
+\subsection{Case study: sistema di tipo per espressioni}
+
+Sintassi:
+ \begin{center}
+  \tt E ::= V | if E then E else E
+  
+  V ::= true | false | NV | isZero E
+  
+  NV ::= 0 | succ NV | pred NV
+ \end{center}
+
+
+\subsubsection{Esempi di regole di esecuzione:}
+\begin{itemize}
+
+
+\tt 
+ \item IF-TRUE
+ 
+ \begin{center}
+  if \textbf{true} then $E_1$ else $E_2$ $\to$ $E_1$
+ \end{center}
+
+ \item IF-FALSE 
+ 
+ \begin{center}if \textbf{false} then $E_1$ else $E_2$ $\to$ $E_2$ 
+ \end{center}
+
+ \item IF-COND \[\dfrac{E \to E'}{\texttt{if $E$ then $E1$ else $E_2$ $\to $ if $E'$ then $E1$ else $E_2$}}\]
+ 
+\item \textrm{Regole della forma:}
+\[\dfrac{E \to E'}{pred\,\,E \to pred\,\,E'} \hspace{1cm}\dfrac{E \to E'}{succ,\,E \to succ\,\,E'} \hspace{1cm }\textrm{... (isZero)}\]
+\item $pred(succ\,\, NV) \to NV$ \textrm{e viceversa}
+\item $pred\,\, 0 \to 0$, $isZero\,\, 0 \to true$, $isZero( succ\,\,NV) \to false$
+\end{itemize}
+\newpage
+\subsubsection{Tipi per espressioni}
+
+Gli unici due tipi di questo linguaggio sono \texttt{Bool} e \texttt{Nat}
+
+Le regole di controllo dei tipi sono molto intuitive:
+\begin{itemize}
+ \item $true : Bool$\quad\quad $false : Bool$ \quad\quad$0 : Nat$
+ \item Regole della forma:
+ \[ \dfrac{E:Nat}{succ\,\,E : Nat} \hspace{2cm} \dfrac{E:Nat}{pred,\,E : Nat} \hspace{2cm} \dfrac{E:Nat}{isZero,\,E : Bool}\]
+ \item $\dfrac{E : Bool\quad E_1 : T\quad E_2:T}{if\,\, E\,\, then\,\, E_1\,\, else\,\, E_2 : T}$, che non permette ad esempio di associare un tipo all'espressione
+ \begin{center}
+  \tt if true then 0 else false
+ \end{center}
+ 
+ ...anche se questa assume sempre valore numerico. In questo modo si garantisce però la composizionalità (tipo delle espressioni dipende solo da tipo delle sottoespressioni)\smallskip
+ 
+ Ogni coppia espressione-tipo $(E, T)$ della relazione di tipo è caratterizzata da un albero di derivazione costruito da istanze delle regole di inferenza.
+ \end{itemize}
+ \subsubsection{Type Safety: Progresso e Conservazione}
+ 
+ La correttezza (type safety) di un sistema di tipo è espressa formalmente dalle proprietà di \emph{progresso e conservazione}.
+ 
+ \begin{itemize}
+  \item \textbf{Progresso}: se $E:T$ allora $E$ è un valore oppure esiste $E'$ tale che $E \to E'$ 
+  
+  (ossia: una espressione ben tipata non si blocca a run-time)
+  \item \textbf{Conservazione}: Se $E:T$ e $E \to E'$ allora $E' : T$ 
+  
+  (ossia: i tipi sono preservati dalle regole di esecuzione)
+ \end{itemize}
+
+    \subsubsection{Lemmi di inversione}
+    I lemmi di inversione sono ``le regole di tipo lette al contrario'', e.g.:
+    \begin{itemize}
+     \item Dalla regola $true:Bool$ si ottiene il lemma di inversione: ``Se $true: R$ allora $R = Bool$''
+    \item Dalla regola sui tipi delle espressioni condizionali si ottiene:
+    \[\text{Se }(if\,\,E\,\,then\,\,E_1\,\,else\,\,E_2):R \texttt{ allora }E:Bool, \,\, E_1:R, \,\, E_2:R\]
+    \end{itemize}
+    
+    Queste regole possono essere codificate in un algoritmo che restituisce il tipo di un'espressione (e sono utilizzate implicitamente al passo induttivo delle dimostrazioni di progresso e conservazione).
+    
+    \subsubsection{Forme canoniche}
+    Le forme canoniche sono i valori che possono assumere le espressioni di un certo tipo:
+    \begin{itemize}
+     \item Se $v$ è di tipo \texttt{Bool}, allora $v = true$ oppure $v = false$
+     \item Se $v$ è di tipo \texttt{Nat}, allora $v$ è un valore numerico.
+    \end{itemize}
+\newpage
+    \subsubsection{Progresso}
+    Se $E:T$ allora $E$ è un valore oppure esiste $E'$ tale che $E \to E'$
+    
+    \begin{proof}
+    Per induzione sulla struttura della derivazione di $E:T$
+    
+    \begin{itemize}
+     \item \textbf{Casi base:} 
+     \[true : Bool \hspace{2cm} false: Bool \hspace{2cm} 0:Nat\]
+     Immediato, poiché sono valori.
+     \item \textbf{Casi induttivi:} (vediamo, come esempio, quello dell'If-Then-Else, gli altri sono analoghi.)
+     
+     Si consideri la regola:
+     \[\dfrac{E : Bool\quad E_1 : T\quad E_2:T}{if\,\, E\,\, then\,\, E_1\,\, else\,\, E_2 : T}\]
+     Per ipotesi induttiva vale il progresso per $E$, $E_1$, $E_2$, cioè o sono valori o si può fare un passo.
+     
+     \begin{itemize}
+      \item Se $E$ è un valore allora per le forme canoniche deve valere $True$ o $False$. In questo caso si possono applicare le regole IF-TRUE e IF-FALSE per mostrare che l'espressione fa un passo e diventa $E_1$ o $E_2$, per cui vale la regola, per ipotesi induttiva.
+      \item Se $E$ non è un valore si applica la regola IF-COND:
+      \[\dfrac{E \to E'}{\texttt{if $E$ then $E1$ else $E_2$ $\to $ if $E'$ then $E1$ else $E_2$}}\]
+      
+      Quindi si fa un passo.
+     \end{itemize}
+
+    \end{itemize}
+ 
+    \end{proof}
+    \subsubsection{Conservazione}
+    Se $E:T$ e  $E \to E'$ allora $E':T$
+    \begin{proof}
+     Analizziamo di nuovo solo il caso dell'If-Then-Else, per induzione.
+     
+      \[\dfrac{E : Bool\quad E_1 : T\quad E_2:T}{if\,\, E\,\, then\,\, E_1\,\, else\,\, E_2 : T}\]
+     
+     (Caso base: I guess per vacuità vale sui valori(?))\medskip
+     
+     Supponiamo che la regola valga per $E$, $E_1$, $E_2$.
+     
+     Possiamo fare un passo utilizzando la regola IF-COND citata prima, e sapendo, per hp induttiva, che la conservazione vale per $E$ il tipo rimarrà $Bool$, mentre i tipi di $E_1$ ed $E_2$ rimarranno gli stessi perché sono invariati.
+    \end{proof}
+\newpage
+     \subsection{$\lambda$-calcolo tipato semplice}
+     \subsubsection{Estensione con i booleani}
+     Estendiamo il lambda calcolo nel seguente modo:
+     \begin{center}
+        \tt e ::= x | $\lambda$x:$\tau$.e | e e | true | false | if e then e else e
+     \end{center}
+     E notiamo che nel parametro formale della lambda astrazione appare un'annotazione di tipo $\tau$. La sintassi dei tipi è:
+     
+     \begin{center}
+      \tt $\tau$ ::= Bool | $\tau\to \tau$
+     \end{center}
+
+     \subsubsection{Sintassi simil-OCaml}
+     Utilizziamo una nuova sintassi, analoga a quella del lamda-calcolo tipato appena introdotto:
+     \begin{center}
+        \tt e ::= x | fun x:$\tau$ = e | Apply(e, e) | true | false | if e then e else e
+     \end{center}
+     
+     \subsubsection{Ambiente}
+     Le regole di tipatura si complicano rispetto al sistema di tipo per espressioni visto prima, poiché abbiamo delle variabili (la \texttt{x} in \texttt{fun x:$\tau$}); ci serve perciò un \emph{ambiente}.\smallskip
+     
+     L'ambiente è una funzione $\Gamma$ che associa nomi a tipi. Per indicare $\Gamma(x_i) = \tau_i$ noi utilizzeremo la notazione:
+     \[ \Gamma = x_1 : \tau_1,\quad x_2 : \tau_2, \quad\hdots \quad x_k:\tau_k \]
+     
+     Mentre utilizzeremo la notazione $\Gamma, x:\tau$ per indicare l'\textbf{estensione} di $\Gamma$ con l'associazione $x:\tau$:
+     \[(\Gamma, x:\tau)(y) = \begin{cases}
+                              \tau &y = x\\
+                              \Gamma(y) & y \neq x
+                             \end{cases}
+     \]
+     
+     Ovviamente questo vale solo se $y$ è nell'ambiente: in caso contrario $\Gamma(y) = undefined$.\bigskip
+     
+     Nota: nel gergo dei compilatori l'ambiente è chiamato ``tabella dei simboli''.
+     
+     \subsubsection{Giudizio di tipo}
+     Sia $\Gamma$ un ambiente di tipo, si usa la notazione $\Gamma \vdash e:\tau$ per indicare che $e$ ha tipo $\tau$ nell'ambiente $\Gamma$.
+     
+     \subsubsection{Regole di tipo}
+     
+     \[ \Gamma \vdash true : Bool \hspace{2cm}  \Gamma \vdash false : Bool \hspace{2cm} \dfrac{\Gamma(x) = \tau}{\Gamma \vdash x: \tau} \]
+     
+     \textbf{Funzioni:}\smallskip
+     \begin{itemize}
+      \item \emph{Definizione:}
+     
+     \[ \dfrac{(\Gamma, x : \tau_1) \vdash e:\tau _2}{\Gamma \vdash (fun\,\, x:\tau_1 = e): \tau_1 \to \tau_2} \]
+     
+     In questo modo implemento lo scoping; la dichiarazione del parametro $x$ \textbf{sovrascrive} e annulla le precedenti dichiarazioni per $x$ che sono in $\Gamma$.
+     
+     \item \emph{Invocazione:}
+     \[ \dfrac{\Gamma \vdash e_1 : \tau_1 \to \tau_2 \quad\quad \Gamma \vdash e_2 : \tau_1}{\Gamma \vdash Apply(e_1, e_2) : \tau_2} \]
+     \end{itemize}
+\newpage
+
+\subsubsection{Type safety}
+\begin{itemize}
+ \item \textbf{Progresso}: Se $\emptyset \vdash e:\tau$ allora $e$ è un valore oppure esiste $e'$ tale che $e \to e'$
+ \item \textbf{Conservazione}: Se $\Gamma \vdash e:\tau$ e $e \to e'$ allora $\Gamma \vdash e' : \tau$
+\end{itemize}
+Le dimostrazioni sono simili a quelle fatte per le espressioni:
+\begin{itemize}
+ \item Si deve fare una dimostrazione per ogni regola di derivazione
+ \item Le regole che non hanno delle precondizioni sono usate come casi base, mentre quelle che ne hanno come casi induttivi
+
+ \end{itemize} 
+ 
+ \textbf{Progresso:}
+ Unico caso meno ovvio: $Apply(e_1, e_2)$,\quad  $\emptyset\vdash e_1 : \tau_1 \to \tau_2$, \quad$\emptyset \vdash e_2 : \tau_1$
+ \begin{proof}
+  
+ Per ipotesi induttiva sappiamo che il progresso vale per $e_1$ ed $e_2$; 
+ 
+ \begin{itemize}
+  \item Se le espressioni \textbf{possono fare un passo} allora si possono applicare le regole di riduzione dell'applicazione, quindi vale il progresso.
+  \item Se \textbf{sono entrambe valori} allora per il lemma delle forme canoniche del lambda calcolo tipato (analogo a quelli per le espressioni e valido anche per valori funzionali) abbiamo che $e_1$ è della forma $(fun \,\, x:\tau_1 = e'): \tau_1 \to \tau_2$, quindi si può applicare la $\beta$-riduzione.
+ \end{itemize}
+ \end{proof}
+
+  
+  \textbf{Conservazione:} Con gli strumenti che abbiamo non possiamo dimostrare la conservazione della $Apply$, ci serve un nuovo lemma.
+  
+  \paragraph{Lemma di sostituzione}
+   I tipi sono preservati dall'operazione di sostituzione:
+
+   \[ \Gamma,x : \tau_1 \vdash e:\tau \quad \wedge \quad\Gamma \vdash e_1 : \tau_1 \implies \Gamma \vdash e\{ x=e_1 \} :\tau \]
+   
+   Questo lemma si dimostra per induzione sulla derivazione di $\Gamma, x :\tau_1 \vdash e : \tau$, dimostrazione nelle note.\medskip
+   
+   Possiamo adesso dimostrare la conservazione:
+   
+   \begin{proof} 
+   La regola di tipo per la apply è:
+   \[ \dfrac{\Gamma \vdash e_1 : \tau_1 \to \tau_2 \quad\quad \Gamma \vdash e_2 : \tau_1}{\Gamma \vdash Apply(e_1, e_2) : \tau_2} \]
+   
+   \begin{itemize}
+    \item \textbf{Caso:} $e_1 = (fun \,\, x:\tau_1 = e_3)$, allora fa un passo tramite la $\beta$-riduzione:
+    
+    \[ Apply((fun\,\, x : \tau_1 = e_3), e_2) \to e_3\{x := e_2\} \]
+    
+    E per mostrare che vale la conservazione devo dimostrare che $e_3\{ x := e_2 \}$ ha lo stesso tipo di $Apply(e_1, e_2)$, ossia $\tau_2$. La regola di tipo che applico a questo punto è:
+    \[ \dfrac{(\Gamma , x : \tau_1) \vdash e_3 : \tau_2}{\Gamma \vdash (fun\,\, x: \tau_1 = e_3) :\tau_1 \to \tau_2} \]
+   
+   che permette di dimostrare che $e_3 : \tau_2$, il che è diverso da $e_3\{ x := e_2 \} : \tau_2$, ma per il lemma di sostituzione sappiamo che, dato che il tipo di $x$ ed il tipo di $e_2$ sono uguali, vale $e_3\{x := e_2\} : \tau_2$ 
+   
+   \end{itemize}
+   \end{proof}
+\newpage
+    \subsubsection{Estensione con booleani e numeri}
+    \begin{flushleft}
+     \tt  
+     e ::= x | fun x:$\tau$ = e | Apply(e, e) 
+     
+     \quad \quad\quad\quad\,\,\,\,\,| true | false | n | e$\oplus$e | if e then e else e
+     \end{flushleft}
+
+
+    \textbf{Regole di tipo} per i naturali:
+    
+    \[ \Gamma \vdash n : Nat\hspace{2cm} \dfrac{\Gamma \vdash e_1 : \tau_1 \quad\quad \Gamma \vdash e_2 : \tau_2 \quad\quad \oplus : \tau_1 \times \tau_2 \to \tau}{\Gamma \vdash e_1 \oplus e_2 : \tau} \]
+   
+   \subsubsection{Dichiarazioni locali}
+   Aggiungiamo alla sintassi il costrutto \texttt{let $x$ = $e_1$ in $e_2 : \tau$}\smallskip
+   
+   \textbf{Regole di valutazione:}
+   \[ \dfrac{e_1 \to e'}{let\,\, x = e_1 \,\,in\,\, e_2 :\tau_2 \to  let\,\, x = e' \,\,in\,\, e_2 :\tau_2} \]
+   
+   \[let\,\,x = v \,\, in \,\, e_2 : \tau_2 \to e_2\{ x = v \}: \tau_2\]
+   
+   Queste regole mi obbligano a valutare completamente $e_1$ prima di sostituirla in $e_2$.
+   
+   \textbf{Regola di tipo:}
+   \[ \dfrac{\Gamma \vdash e_1 : \tau_1 \quad\quad \Gamma, x:\tau_1 \vdash e_2:\tau_2}{let\,\, x = e_1\,\,in\,\, e_2 : \tau_2} \]
+   
+   \subsubsection{Ricorsione}
+   Si usa $fix$, che permette di ottenere il punto fisso di una funzione, come segue:
+   
+   \[ \dfrac{}{fix(fun\,\, x : \tau = e) \to e[x = fix(fun\,\, x : \tau = e)]} \hspace{2cm} \dfrac{e \to e'}{fix\,\,e\to fix\,\,e'}\]
+   
+   E adesso è possibile anche tipare funzioni che non terminano (cosa che non si poteva fare, e.g. si provi a tipare un'applicazione del combinatore omega):
+   
+   \[ \dfrac{\Gamma \vdash e : \tau\to \tau}{\Gamma \vdash fix\,\, e:\tau}\]
+   
+   Il lambda calcolo tipato semplice + fix è noto in letteratura come PCF (Plotkin 1977).
+   
+   \subsubsection{Una sintassi più semplice per la ricorsione}
+   
+   Linguaggi come OCaml usano la sintassi \texttt{let rec}
+   
+   \begin{lstlisting}
+let rec fact x = 
+        if x <= 1 then 1 else x * fact (x-1);;   \end{lstlisting}
+
+\end{document}

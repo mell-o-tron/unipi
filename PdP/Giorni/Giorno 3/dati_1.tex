@@ -1,0 +1,333 @@
+ 
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{MnSymbol}
+\usetikzlibrary{patterns.meta}
+\setlength{\parindent}{0em}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\cnot}{\centernot}
+
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language=caml,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\bfseries,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+
+\begin{center}
+    \Large Giorno 3 - Dati\smallskip
+
+\end{center}\smallskip
+\begin{abstract}
+ I dati sono classificabili in base a ciò che ci possiamo fare (associarli ad un nome, ottenerli come soluzione di una valutazione di espressione, memorizzarli), ed i tipi sono classificabili in base a chi li usa (sistema, programma). Un descrittore di dato contiene informazioni sul suo tipo, ed ha vari usi nei controlli a runtime. L'ultima parte del \emph{giorno} consiste di una carrellata di tipi di dato, con un focus particolare sui record, ed accenni sugli array.
+\end{abstract}
+
+\section{Dati, tipi, e sistemi di tipo}
+\subsection{Classificazione}
+I dati possono essere:
+\begin{itemize}
+ \item \textbf{Denotabili} se possono essere associati ad un nome
+ \item \textbf{Esprimibili} se possono essere il risultato della valutazione di un'espressione complessa (diversa dal semplice nome)
+ \item \textbf{Memorizzabili} se possono essere memorizzati e modificati in una variabile.
+\end{itemize}
+
+\paragraph{Esempio} Le funzioni in ML sono denotabili:
+\begin{lstlisting}[language = ml]
+let plus (x, y) = x+y
+\end{lstlisting}
+Esprimibili:
+\begin{lstlisting}[language = ml]
+let plus = function(x: int) -> function(y:int) -> x + y
+\end{lstlisting}
+Ma \textbf{non sono memorizzabili} in una variabile.
+
+\subsubsection{Tipi di dato di sistema e di programma}
+I tipi di dato \emph{di sistema} sono quelli che la macchina virtuale usa per funzionare (e.g. il run-time stack), mentre quelli \emph{di programma} sono i tipi primitivi del linguaggio (bool, int, list...) e quelli definibili dall'utente.
+\subsubsection{Tipo di dato: definizione}
+Un tipo di dato è una collezione di valori rappresentato da 
+\begin{itemize}
+ \item Opportune strutture dati
+ \item Un insieme di operazioni
+\end{itemize}
+
+Dei tipi di dato ci interessano la semantica (come si comportano) e l'implementazione.
+\subsubsection{Descrittori di dato}
+Alla rappresentazione concreta di un dato è associata un'altra struttura, detta \emph{descrittore di dato}, che contiene una descrizione del tipo del dato. I descrittori di dato sono utili, ad esempio:
+\begin{itemize}
+ \item Per fare typechecking dinamico (ossia controllare se l'uso dei tipi in un'operazione è corretto)
+ \item Per selezionare l'operatore giusto nel caso di operazioni overloaded (e.g. $+$ sia per somma int che float, che per concatenare...)
+\end{itemize}
+\subsubsection{Esempi}
+\begin{itemize}
+ \item OCaml: controllo statico dei tipi $\implies$ i descrittori non servono.
+ \item JavaScript: Tutto dinamico, servono i descrittori.
+ \item Java: I descrittori contengono solo l'informazione ``dinamica'', perché il type checking è fatto in parte dal compilatore ed in parte dal supporto a run-time. (e.g. array: il controllo dell'accesso out-of-bound è realizzato a run-time)
+\end{itemize}
+Esempio strano: TypeScript fa i controlli statici, ma poi transpila su js, che fa lo stesso i controlli dinamici!\newpage
+
+\subsection{Panoramica sui tipi di dato}
+\subsubsection{Tipi di dato base (scalar)}
+\begin{itemize}
+ \item Booleani:
+ \begin{itemize}
+  \item \textbf{Valori}: true, false
+  \item \textbf{Operazioni}: or, and, not, condizionali
+  \item \textbf{Rappresentazione}: un byte
+  \item \textbf{Note}: C non ha un tipo bool.
+  \end{itemize}
+ \item Char:
+ \begin{itemize}
+  \item \textbf{Valori}: a, A, b, B ...
+  \item \textbf{Operazioni}: uguaglianza; code/decode; dipendono dal linguaggio
+  \item \textbf{Rappresentazione}: un byte (ASCII) o due byte (UNICODE)
+  \end{itemize}
+
+  \item Interi:
+ \begin{itemize}
+  \item \textbf{Valori}: 0, 1, -1, 2, -2 ... maxint
+  \item \textbf{Operazioni}: +, -, *, /...
+  \item \textbf{Rappresentazione}: alcuni byte (2, 4), complemento a 2;
+  \item \textbf{Note}: interi e interi lunghi (anche 8 byte)
+  \item Limitati problemi nella portabilità quando la lunghezza non è specificata nella
+definizione del linguaggio
+  \end{itemize}
+  \item Reali
+ \begin{itemize}
+  \item \textbf{Valori}: Valori razionali in un certo intervallo
+  \item \textbf{Operazioni}: +, -, *, /...
+  \item \textbf{Rappresentazione}: alcuni byte (4), virgola mobile
+  \item \textbf{Note}: reali e reali lunghi (8 byte)
+  \item Problemi nella portabilità quando la lunghezza non è specificata nella
+definizione del linguaggio
+  \end{itemize}
+\end{itemize}
+\subsubsection{Il tipo Void}
+Il tipo void (unit), ha come unico valore \texttt{()}, nessuna operazione e serve per definire il tipo di operazioni che modificano lo stato senza restituire alcun valore.\smallskip
+\begin{center}
+ 
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|c|c|}
+\hline
+ \textbf{Sintassi espressioni} & \textbf{Valori}\\
+ \texttt{e ::= ... | void} & \texttt{v::= ... | void}\\
+ \hline
+ \textbf{Tipi} & \textbf{Regola di tipo}\\
+ \texttt{$\tau$ ::= ... | void} & \texttt{$\Gamma \vdash$ void : Void}\\
+ \hline
+ \end{tabular}
+
+\end{center}
+
+\subsubsection{Tipi composti}
+\begin{enumerate}
+ \item \textbf{Record}: collezione di campi, ciascuno di un diverso tipo; un campo è selezionato col suo nome
+ \item \textbf{Record varianti}: Record dove solo alcuni campi (mutuamente esclusivi) sono attivi a un dato istante
+ \item \textbf{Array}: Funzione da un tipo indice (scalare) ad un altro tipo. Array di caratteri sono detti stringhe.
+ \item \textbf{Insieme}: sottoinsieme di un tipo base.
+ \item \textbf{Puntatore}: Riferimento ad un oggetto di un altro tipo.
+\end{enumerate}
+
+\subsubsection{Record (struct)}
+Sono stati introdotti per manipolare in modo unitario dati di altro tipo eterogeneo. Li troviamo in: C, C++, CommonLisp, Ada, Pascal, Algol68, ...\smallskip
+
+I record possono essere annidati, e sono \textbf{memorizzabili}, \textbf{esprimibili} e \textbf{denotabili}.\smallskip
+\begin{itemize}
+ \item Pascal non ha modo di esprimere “un valore record costante”
+ \item C lo può fare, ma solo nell’inizializzazione (initializer)
+\item Uguaglianza generalmente non definita (contra: Ada)
+
+\end{itemize}
+
+
+Esempi:
+\begin{multicols}{2}
+ 
+\begin{lstlisting}[language = c]
+// C
+struct studente {
+    char nome[20];
+    int matricola; };
+    
+studente s;
+s.matricola = 343536 ;
+\end{lstlisting}
+
+\begin{lstlisting}[language = c]
+// js (oggetto)
+const CartoonCharacter =
+    {Name:"Goofy",
+    Created:1932,
+    FirstAppeared:"Mickey's Revue"
+    };
+\end{lstlisting}
+
+\end{multicols}
+\subsubsection{Record: implementazione}
+Memorizzazione sequenziale dei campi. Problema esempio:
+\begin{multicols}{2}
+ 
+\begin{lstlisting}[language=c]
+ struct MixedData
+{
+    char Data1;     // char: 1 byte
+    short Data2;    // short: 2 byte
+    int Data3;      // int: 4 byte
+    char Data4;     // char: 1 byte
+};
+\end{lstlisting}
+
+Se ho parole di 32 bit, e memorizzo ogni campo in base alla quantità di memoria che occupa, ho:
+\begin{center}
+ 
+\begin{tikzpicture}
+ \node[rectangle, draw]() at (0,0){Data1};
+ \node[rectangle, draw]() at (1.5,0){Data2};
+ \node[rectangle, draw]() at (3,0){Data2};
+ \node[rectangle, draw, fill = lightgray]() at (4.5,0){Data3};
+ \node[rectangle, draw, fill = lightgray]() at (0,-.75){Data3};
+ \node[rectangle, draw, fill = lightgray]() at (1.5,-.75){Data3};
+ \node[rectangle, draw, fill = lightgray]() at (3,-.75){Data3};
+ \node[rectangle, draw]() at (4.5,-.75){Data4};
+
+\end{tikzpicture}
+
+\end{center}
+
+
+\end{multicols}
+
+\smallskip
+
+Data3 si trova a cavallo tra due parole!! Possibili approcci:
+\begin{enumerate}
+ \item Allineamento dei campi alla parola (32/64 bit): occupo un'intera parola per ogni campo
+ \begin{itemize}
+  \item Spreco di memoria (un record contiene tipi di dato diversi, che non occupano tutti lo stesso spazio in memoria)
+  \item Accesso semplice
+ \end{itemize}
+  \item Padding o packed record (\emph{cerco} di mettere più valori nella stessa parola)
+ \begin{itemize}
+  \item Disallineamento
+  \item Accesso più costoso
+ \end{itemize}
+ \begin{lstlisting}[language=c]
+struct MixedData {
+    char Data1; /* 1 byte */
+    char Padding1[1]; /* 1 byte for the following 'short'
+                        to be aligned on a 2 byte boundary*/
+    short Data2; /* 2 bytes */
+    int Data3; /* 4 bytes - largest structure member */
+    char Data4; /* 1 byte */
+    char Padding2[3]; /* 3 bytes to make total size of
+                        the structure 12 bytes */
+};
+\end{lstlisting}
+\end{enumerate}
+
+
+Piccola ottimizzazione (field-reordering):
+\begin{lstlisting}[language = c]
+struct MixedData {
+    char Data1;
+    char Data4;
+    short Data2;
+    int Data3;
+};
+\end{lstlisting}
+
+Tra le miriadi di opzioni del compilatore si può scegliere che modello utilizzare.
+\newpage
+\subsubsection{Record: modello}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|l|l|l|}
+\hline
+ \textbf{Sintassi espressioni} & \textbf{Valori} & \textbf{Tipi} \\
+ \texttt{Exp ::=  ... } & \texttt{v::= ... } & \texttt{$\tau$ ::= ...}\\
+ \texttt{| [l$_1$:e$_1$, ... l$_n$:e$_n$]} & \texttt{| [l$_1$:v$_1$, ... l$_n$:v$_n$]} & \texttt{| [l$_1$:$\tau_1$, ... ln:$\tau_n$]}\\
+ \texttt{| e.l} & &\\
+ \hline
+ \end{tabular}
+ \bigskip
+ 
+\textbf{Semantica statica}: 
+ \[\frac{\forall i : \Gamma \vdash e_i : \tau_i}{[l_1 : e_1,\hdots, l_k:e_k] : [l_1 :\tau_1,\hdots, l_k : \tau_k]}  \hspace{1cm}
+ \frac{\Gamma \vdash e : [l_1 :\tau_1,\hdots, l_k : \tau_k], 1 \leq j \leq k}{\Gamma \vdash e.l_j : \tau_j}
+ \]
+
+\textbf{Semantica dinamica}: 
+  \[\frac{1 \leq j \leq k}{[l_1 : v_1,\hdots, l_k:v_k].l_j \to v_j}  \hspace{1cm}
+ \frac{e \to e'}{e.l \to e'.l}
+ \]
+ \[\frac{e_j \to e_j'}{[l_1:e_1,\hdots,  l_j:e_j, \hdots, l_k:e_k] \to [l_1:e_1,\hdots,  l_j:e_j', \hdots, l_k:e_k]}\]
+ 
+ \subsubsection{Record: simulazione OCaml}
+ \begin{lstlisting}
+type label = Lab of string
+type expr = ...
+    | Record of (label * expr) list
+    | Select of expr * label
+    
+Record [(Lab "size", Int 7); (Lab "weight", Int 255)]
+ \end{lstlisting}
+
+ Funzioni di valutazione:
+ 
+ \begin{lstlisting}
+    let rec lookupRecord body (Lab l) =
+    match body with
+        | [] -> raise FieldNotFound
+        | (Lab l', v)::t ->
+            if l = l' then v else lookupRecord t (Lab l)
+ \end{lstlisting}
+
+ Interprete:
+ \begin{lstlisting}
+  let rec eval e = match e with
+    ...
+    | Record(body) -> Record(evalRecord body)
+    | Select(e, l) -> match eval e with
+        |Record(body) -> lookupRecord body l
+        | _ -> raise TypeMismatch
+
+    and evalRecord body = match body with
+        |[] -> []
+        |(Lab l, e)::t -> (Lab l, eval e)::evalRecord t
+ \end{lstlisting}
+
+ \subsubsection{Array}
+Un \textbf{array} è una \emph{collezione di dati omogenei}; si può vedere come una funzione dal tipo dell'indice (usualmente discreto, e.g. int) al tipo degli elementi. L'implementazione standard consiste nella memorizzazione degli elementi in \textbf{locazioni contigue}. \smallskip
+
+Ovviamente la maggior parte di ciò è falso per gli array di js, che sono implementati in modo non-standard, possono essere non omogenei, sono dinamici e restituiscono ``undefined'' se si va out-of-bound.\smallskip
+
+Il controllo sui bound è solitamente lasciato all'utente (contra: Java, Python), anche se Tony Hoare dice (e c'ha ragione) che è meglio fare un vero controllo a run-time, se no ci sono un sacco di vulnerabilità (code reuse, injection).
+\end{document}

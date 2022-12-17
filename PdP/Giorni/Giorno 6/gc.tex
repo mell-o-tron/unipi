@@ -1,0 +1,94 @@
+   
+ 
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{MnSymbol}
+\usetikzlibrary{patterns.meta}
+\setlength{\parindent}{0em}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\cnot}{\centernot}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language=java,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\bfseries,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+
+\begin{center}
+    \LARGE Giorno 6\smallskip
+
+    \Large Garbage Collection
+\end{center}\smallskip
+
+
+\section{Garbage Collection}
+[tratto solo gli algoritmi, si vedano le prime slide per overview di allocazione in heap motivazioni, definizione di frammentazione interna ed esterna]
+
+\subsection{Reference Counting}
+Per ogni cella si mantiene un contatore dei riferimenti a quella cella. Quando questo arriva a zero, la cella diventa garbage e si può liberare.\smallskip
+
+\textbf{Problema:} potrei rimanere con una \textbf{componente connessa} di celle che riferiscono le une alle altre che è irraggiungibile; 
+
+\subsection{Mark-Sweep}
+Faccio una visita del grafo delle reference e ``marco'' tutto ciò che è raggiungibile. Il resto è garbage;\smallskip
+
+In questo modo risolvo il problema delle componenti connesse irraggiungibili.\smallskip
+
+\textbf{Problemi:} Come si identificano i puntatori? Si deve avere informazioni sul \textbf{tipo}. 
+\begin{itemize}
+ \item Java: non è un problema, si hanno informazioni e sappiamo ``chi è una reference''
+ \item OCaml: Si sacrifica il bit meno significativo, che è $0$ se e solo se il dato è un puntatore (lo sarebbe comunque, poiché i puntatori sono allineati alle parole, ma si pone uguale a 1 se non si ha un puntatore).
+\end{itemize}
+
+\textbf{Altri problemi:} Bisogna sospendere l'esecuzione; Non si interviene sulla \textbf{frammentazione}.
+
+\subsection{Copying collection - Algoritmo di Cheney}
+Questo metodo risolve il problema della frammentazione, aggiungendo un po' di overhead e sacrificando metà della memoria.\smallskip
+
+\begin{itemize}
+ \item Si suddivide lo heap in due parti uguali, dette ``from-space'' e ``to-space''
+ \item Si può allocare solo nel \textbf{from-space}
+ \item Periodicamente si copiano tutte le celle raggiungibili nel \textbf{to-space}, deframmentandole
+ \item Si scambiano i ruoli di from-space e to-space ad ogni copia; in questo modo abbiamo effettivamente \textbf{perso ogni riferimento irraggiungibile}.
+\end{itemize}
+
+\subsection{GC Generazionale}
+Si suddivide lo heap in $n$ aree, dove l'area $0$ è detta \texttt{young}, l'area $n-1$ è detta \texttt{old} e le aree in mezzo sono ``generazioni intermedie''.\smallskip
+
+Inizialmente tutti gli oggetti sono creati nell'area \texttt{young}, e periodicamente gli oggetti young raggiungibili sono spostati in un'area ``più old''. Gli oggetti \texttt{young} sono ripuliti più spesso, mentre quelli old meno spesso (ma sono di più, quindi ha costo maggiore);\smallskip
+
+Questo è l'approccio di Java e C\#, che hanno entrambi tre generazioni, ognuna che \textbf{utilizza un algoritmo diverso} per la garbage collection, e.g. Java usa \textbf{copy-collection} per le generazioni 0,1 e mark-sweep (+ meccanismi anti frammentazione) per la generazione 2.
+
+\end{document}

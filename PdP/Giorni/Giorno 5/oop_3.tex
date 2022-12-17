@@ -1,0 +1,241 @@
+ 
+ 
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{MnSymbol}
+\usetikzlibrary{patterns.meta}
+\setlength{\parindent}{0em}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\cnot}{\centernot}
+
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language=java,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\bfseries,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+
+\begin{center}
+    \LARGE Giorno 5\smallskip
+
+    \Large OOP: Ereditarietà
+\end{center}\smallskip
+
+\begin{abstract}
+ Nella prima parte si analizza l'ereditarietà in Java: Si introduce la \textbf{classe Object} ed alcuni suoi metodi, si parla del modificatore \texttt{protected} e delle classi astratte. Si introduce infine la gerarchia di classi, e nella seconda parte si parla di come si vanno a cercare in modo efficiente i metodi nelle superclassi.
+\end{abstract}
+
+\section{Ereditarietà}
+L'eredità in java funziona per estensione esplicita, tramite \texttt{extends}:
+\begin{lstlisting}
+ class B extends A {...}
+\end{lstlisting}
+Ed una classe che non estende altre classi estende di default la classe \textbf{Object}.
+
+\paragraph{Nota:} Una classe che ne estende un'altra \textbf{non ne eredita i membri privati}.
+
+\subsection{La classe Object}
+La classe Object mette a disposizione alcuni metodi assunti essere presenti in tutte le classi:
+\begin{itemize}
+ \item \texttt{toString()}: restituisce una rappresentazione testuale dell’oggetto
+ \item \texttt{equals(obj)}: confronta l’oggetto corrente con l’oggetto obj
+ \item \texttt{clone()}: crea una copia dell’oggetto
+ \item ... \texttt{https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html}
+\end{itemize}
+
+\subsubsection{Confronto con equals()}
+\begin{lstlisting}
+ String s1 = "ciao";
+ String s2 = s1;
+ String s3 = "ciao a tutti"
+ String s4 = s3.substring(0,4);         // restituisce sottostringa "ciao"
+ System.out.println(s1==s2);            // true (stesso riferimento)
+ System.out.println(s2==s4);            // false (riferimenti diversi)
+ System.out.println(s2.equals(s4));     // true (stesso contenuto)
+\end{lstlisting}
+
+\subsubsection{Le stringhe (letterali) sono speciali}
+I letterali, (i.e. stringhe del tipo \texttt{"banana"}) sono \textbf{oggetti immutabili}: i metodi di String non modificano gli oggetti, ma ne restituiscono sempre dei nuovi come risultato.
+
+\subsubsection{Riconoscimento di letterali uguali}
+Il compilatore, per ottimizzare, riconosce letterali uguali ed ottimizza il codice \textbf{costruendo un solo oggetto}.
+
+\subsection{Visibilità (protected)}
+Oltre ai modificatori di accesso/visibilità che abbiamo visto, esiste: \texttt{protected}: rende visibili i membri \textbf{solo alle alle sotto-classi}, senza renderli del tutto pubblici.
+
+\newpage
+\subsection{Classi astratte}
+Una \textbf{classe astratta} è una \textbf{classe parzialmente definita}:
+
+\begin{lstlisting}
+ public abstract class Solido {
+    // variabile d'istanza
+    private double pesoSpecifico ;
+    
+    // costruttore
+    public Solido ( double ps ){
+        pesoSpecifico = ps;
+    }
+    
+    // metodo implementato
+    public double peso (){
+        return volume () * pesoSpecifico ;
+    }
+    
+    // metodi astratti
+    public abstract double volume ();
+    public abstract double superficie ();
+ }
+\end{lstlisting}
+
+Le classi astratte sono utilizzate estendendole, ed implementando i metodi astratti, in questo caso \texttt{volume} e \texttt{superficie}.
+
+\subsection{Gerarchia di classi}
+Il costrutto extends consente di creare una \textbf{gerarchia di classi}, rappresentabile come un albero la cui radice è Object. Dato che in Java alle classi sono associati \emph{tipi di oggetto}, la gerarchia di classi è una rappresentazione della relazione di sottotipo, con $Top = Object$.\smallskip
+
+La regola di subsumption del sistema di tipi ci consente di ottenere un meccanismo di \textbf{polimorfismo per sottotipo}.
+\begin{multicols}{2}
+ 
+\begin{itemize}
+ \item Proprietà transitiva:
+ \[ \dfrac{T_1 <: T_2\quad T_2 <: T_3}{T_1 <: T_3} \]
+
+ \item Subsumption
+ \[ \dfrac{\Gamma \vdash_e exp : S \quad S :<T }{\Gamma \vdash_e exp : T}\]
+ \item New
+ \[ \Gamma \vdash_e new \,\,T() : T \]
+ \item Assegnamento
+ \[ \dfrac{\Gamma \vdash_e exp : t}{\Gamma \vdash_c T\,\, x = exp} \]
+\end{itemize}
+
+\end{multicols}
+
+\subsubsection{Lo Structural subtyping è più debole del Nominal subtyping}
+
+Lo Structural è più debole del Nominal poiché nel nominal vale:
+
+\[ S <: T \implies \text{ogni membro pubblico di $T$ è membro pubblico di $S$} \]
+
+La cui dimostrazione segue dalla definizione di extends/implements e dalla transitività di $<:$
+
+
+\newpage
+\section{Overloading, Overriding, Dynamic Dispatch}
+\subsection{Overloading di metodi}
+Ad ogni metodo è associata una \textbf{signature}, che contiene il suo nome ed il tipo dei suoi parametri.
+
+\paragraph{Esempi:} 
+\begin{center}
+ 
+\begin{tabular}{|c|c|}
+\hline
+\bf Metodo & \bf Signature\\
+\hline
+\tt int getVal() & \tt getval\\
+\hline
+\tt int minimo(int x, int y) &\tt  minimo(int, int)\\
+\hline
+\tt int minimo(int a, int b) &\tt  minimo(int, int)\\
+\hline
+\tt double minimo(double a, double b) &\tt  minimo(double, double)\\
+\hline
+\end{tabular}
+
+\end{center}
+
+\paragraph{Nota} Si noti la signature \textbf{non tiene conto del nome dei parametri}, poiché la signature riassume solo le informazioni che possono essere dedotte dalla chiamata del metodo (quindi non i nomi dei parametri)\medskip
+
+
+Più metodi di una stessa classe possono \textbf{avere lo stesso nome}, a patto che sia diversa la loro signature (ossia, nella pratica, il nome dei loro parametri). La tecnica di chiamare più metodi con lo stesso nome prende nome di \textbf{overloading}.
+
+\paragraph{Formalmente:}
+\[ \dfrac{\forall i \in [1, n]. \Gamma \vdash_e e_i : T_i \quad obj : S \quad T\,\, m(T_1 x_1 , \hdots, T_n x_n)C \in S}{\Gamma \vdash_e obj.m(e_1, \hdots, e_n) : T} \]
+
+Ossia: Se tutti i parametri attuali sono del tipo giusto, la signature è $S$ e la dichiarazione del metodo ha signature $S$, allora si può assegnare tipo $T$ alla chiamata del metodo.
+\smallskip
+
+La procedura di scegliere il metodo con la signature corretta si dice \textbf{static dispatch}; \smallskip
+
+(in generale, con il termine \textbf{dispatch} si indica il metodo con cui si collegano le chiamate di funzione/metodo alle loro definizioni)
+\subsubsection{Invocare un metodo}
+
+Quando si invoca un metodo, si controlla (staticamente) se questo è presente nella classe che descrive il \emph{tipo apparente} (tipo statico) dell'oggetto. Se il metodo si trova nella classe che descrive il \emph{tipo effettivo}, non sarà trovato automaticamente, ma si deve eseguire un downcast esplicito (se possibile dopo aver controllato il tipo effettivo con \texttt{instanceof}).\smallskip
+
+Se il metodo non è trovato, c'è un errore a tipo di compilazione. 
+
+
+\subsection{Dynamic Dispatch ed Overriding}
+Superati i controlli statici, a tempo di esecuzione la chiamata del metodo può trovarsi nei seguenti casi:
+\begin{itemize}
+ \item Il metodo è presente nella classe dell'oggetto (ok!)
+ \item Il metodo va cercato nelle superclassi
+\end{itemize}
+
+Nel secondo caso la ricerca del metodo parte dalla classe corrente (\textbf{tipo effettivo}) e risale la gerarchia. Questo prende il nome di \textbf{dynamic dispatch}.
+
+\subsubsection{Realizzazione efficiente}
+Ovviamente visitare l'albero ad ogni chiamata di metodo sarebbe molto inefficiente, perciò la JVM adotta una soluzione basata su:
+\begin{itemize}
+ \item \textbf{Tabelle dei metodi} (\textbf{dispatch vector}), una tabella con puntatori al codice dei metodi;
+ \item \textbf{Sharing strutturale}, i.e. la tabella (dispatch vector) di una sottoclasse \textbf{riprende la struttura} della tabella della superclasse \textbf{aggiungendo righe} per i nuovi metodi (aka \textbf{l'ordine dei metodi in comune è lo stesso}) -- (n.b. le due tabelle sono distinte, è shared solo l'ordine!)
+\end{itemize}
+
+Queste due tecniche, permettono di accedere all'unica tabella che descrive le sottoclassi per indice, ed una chiamata di un metodo sarà tradotta nel bytecode con una chiamata \texttt{invokevirtual \#i}, dove $i$ è l'indice nella tabella.
+
+\newpage
+
+\subsubsection{Overriding}
+Che succede se ``risalendo la gerarchia'' si trovano due metodi con la stessa firma? \textbf{Si sceglie il primo incontrato}, aka quello definito più di recente. In termini di \textbf{dispatch vector}, le tabelle hanno la stessa struttura, ma i puntatori possono essere diversi a causa dell'overriding.
+\subsubsection{Ultime cose}
+\begin{itemize}
+ \item \textbf{Come si accede alle variabili d'istanza?} (intuitivamente, poi in realtà è più complicato) il compilatore aggiunge \texttt{this} come parametro implicito al metodo:
+ 
+\begin{lstlisting} 
+public String getMatricola() { return matricola; } 
+\end{lstlisting}
+Diventa
+
+\begin{lstlisting}
+ public String getMatricola(Studente this) { return this.matricola; }
+\end{lstlisting}
+
+\emph{(``a la Python'')}
+ \item \textbf{Chiamata ai metodi statici:}
+ 
+ I metodi statici hanno un \textbf{dispatch vector separato}, acceduto tramite \texttt{invokestatic} nel bytecode.
+ 
+ $\implies$ sostanzialmente \textbf{non sono metodi}
+\end{itemize}
+
+\end{document}
+ 

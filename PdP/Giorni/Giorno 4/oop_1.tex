@@ -1,0 +1,271 @@
+ 
+ 
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{centernot}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{MnSymbol}
+\usetikzlibrary{patterns.meta}
+\setlength{\parindent}{0em}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}} 
+\newcommand{\cnot}{\centernot}
+
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language=caml,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\bfseries,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+\lstset{
+ morekeywords={module, sig, struct, Some, None, method, val, object, class, new}
+}
+\begin{document}
+
+
+\begin{center}
+    \LARGE Giorno 4\smallskip
+
+    \Large OOP
+\end{center}\smallskip
+\begin{abstract}
+ Nel paradigma orientato agli oggetti, il sistema software è caratterizzato da un insieme di oggetti cooperanti, ognuno con i propri attributi (stato) ed i loro metodi (funzioni che agiscono (o meno, vd \texttt{static}) sullo stato). Vi sono due approcci diversi all'OOP, uno che si basa sulla manipolazione degli oggetti (object-based, usa subtyping strutturale e prototipi per l'ereditarietà), ed uno in cui gli oggetti sono istanze delle classi, (class-based, subtyping nominale, extends). Si studiano, inoltre, gli aspetti OOP di OCaml.
+\end{abstract}
+
+\section{Il paradigma orientato agli oggetti}
+
+Nel paradigma orientato agli oggetti il sistema software è caratterizzato da un insieme di \textbf{oggetti cooperanti}; ogni oggetto è caratterizzato da:
+\begin{itemize}
+ \item \textbf{Stato}: Gli attributi/proprietà/variabili dell'oggetto
+ \item \textbf{Funzionalità}: i \textbf{metodi}/funzioni dell'oggetto.
+ \item \textbf{Nome}: individua l'oggetto
+ \item \textbf{Ciclo di vita}: Un oggetto può essere creato, riferito, disattivato
+ \item \textbf{Locazione} di memoria.
+\end{itemize}
+
+Lo \textbf{stato del programma} consiste, idealmente, dell'insieme degli stati degli oggetti (anche se nella pratica a questo si aggiungono le strutture dati per il run-time support)
+
+\subsection{Classi ed Oggetti}
+Vi sono due approcci principali all'OOP:
+\begin{itemize}
+ \item \textbf{Object-based} Come js (anche se dal 2016 supporta anche le classi)
+ \item \textbf{Class-based} Come Java.
+\end{itemize}
+
+\subsubsection{Approccio Object Based}
+Nell'approccio object based gli oggetti sono trattati nel linguaggio in modo simile ai record, con le seguenti differenze:
+\begin{itemize}
+ \item I campi possono essere associati a funzioni
+ \item Esiste \textbf{this}/self, tramite il quale un metodo può accedere ai campi dell'oggetto stesso.
+ \item Js permette di modificare la struttura dell'oggetto dinamicamente, e.g. aggiungendo campi.
+\end{itemize}
+
+\subsubsection{Approccio Class Based}
+
+Una classe definisce il contenuto degli oggetti di un certo tipo, e poi gli oggetti sono creati come istanze di una certa classe (e.g. \textbf{new})
+
+\subsubsection{Differenze tra i due approcci}
+
+\begin{itemize}
+ \item L'approccio object-based consente al programmatore di lavorare con gli oggetti in modo più flessibile, ma rende difficile predire con precisione quale sarà il tipo di un oggetto (\textbf{ostacola controlli statici})
+ \item L'approccio class-based richiede al programmatore una maggiore disciplina e consente di fare \textbf{controlli di tipo statici} sugli oggetti: il tipo di un oggetto sarà legato alla classe da cui è stato istanziato (\textbf{nominal typing}, vd \ref{nominal}) 
+\end{itemize}
+\newpage
+\subsection{Inheritance e subtyping}
+La scelta tra object-based e class-based ha impatto sui meccanismo di ereditarietà e sottotipatura del linguaggio:
+\begin{itemize}
+ \item I linguaggi \textbf{object-based} utilizzano la \emph{prototype-based inheritance} e lo \emph{structural (sub)typing}.
+ \item I linguaggi \textbf{class-based} utilizzano la \emph{class-based inheritance} ed il \emph{nominal subtyping}
+\end{itemize}
+
+E voi direte: che sono? E io dirò:
+
+\subsubsection{Ereditarietà}
+L'ereditarietà (inheritance) è una funzionalità che permette di definire una classe/un oggetto a partire da un'altra/o esistente.
+
+\paragraph{Ereditarietà per i linguaggi object-based:} Per ogni oggetto si mantiene una lista di prototipi, ossia di oggetti da cui esso eredita funzionalità. Esiste un oggetto da cui tutti gli oggetti ereditano funzionalità, ed è solitamente detto \textbf{object}. In js \texttt{\_\_proto\_\_} è usato per risalire di un livello la catena dei prototipi.
+
+\paragraph{Ereditarietà per i linguaggi class-based:} I linguaggi class-based consentono di definire una classe come estensione di un'altra. La nuova classe eredita tutti i membri (valori e metodi) della precedente, con la possibilità di aggiungerne o ridefinirne alcuni. 
+
+\subsubsection{Subtyping}
+\begin{itemize}
+ \item \textbf{Strutturale}: usato da linguaggi object based: un oggetto $B$ è sottotipo di $A$ se ha tutti i membri \textbf{pubblici} di $A$ + eventualmente altri.
+ \item \label{nominal}\textbf{Nominale}: usato da linguaggi class-based: il tipo di un oggetto corrisponde alla classe da cui è stato istanziato: \textbf{nome della classe = tipo}. Un tipo-classe $B$ è sottotipo di un tipo-classe $A$ se la classe $B$ è estensione di $A$.
+\end{itemize}
+
+
+Di nuovo, il meccanismo usato dal \textbf{class-based} è più rigoroso, mentre l'altro è più flessibile.
+
+\begin{itemize}
+ \item Js ed OCaml adottano lo \textbf{structural} (anche se altri aspetti dell'ereditarietà di OCaml, non per gli oggetti, sono basati su simil-extends\footnote{qua immagino si faccia riferimento alla creazione di record con ``with'', ma potrei sbagliarmi.})
+\end{itemize}
+
+
+\newpage
+
+\subsection{OOP di OCaml}
+
+Un \textbf{oggetto} in ocaml è un valore fatto di campi e metodi. Gli oggetti possono essere creati direttamente (non ci sono classi). Il \textbf{tipo} di un oggetto è dato dai \textbf{metodi} che esso contiene (i \textbf{campi non influiscono} sul tipo). Esempio:
+
+\begin{lstlisting}
+ (* oggetto che realizza uno stack *)
+ let s = object
+    (* campo mutabile che contiene la rappresentazione dello stack*)
+    val mutable v = [0; 2] (* Assumiamo per ora inizializzato non vuoto *)
+    (* metodo pop *)
+    method pop =
+        match v with
+        | hd :: tl ->
+        v <- tl;
+        Some hd
+        | [] -> None
+    (* metodo push *)
+    method push hd =
+        v <- hd :: v
+ end ;;
+\end{lstlisting}
+
+Questo oggetto ha tipo: 
+\begin{lstlisting}
+ val s : < pop : int option; push : int -> unit > = <obj>
+
+\end{lstlisting}
+
+\paragraph{Note sintattiche}
+\begin{itemize}
+ \item Nei metodi senza parametri non è necessario aggiungere ()
+ \item Non c'è this, i campi sono visibili nei metodi.
+ \item Per invocare i metodi si usa la \texttt{\#} notation invece della dot notation.
+\end{itemize}
+
+\subsubsection{Digressione: type weakening}
+
+Che sarebbe successo se avessi inizializzato il campo \texttt v dell'oggetto \texttt s con la lista vuota? (listing precedente, riga 4). Quale tipo verrebbe inferito per \texttt s?\smallskip
+
+\textbf{Non sappiamo quale sia il tipo della lista}, ma sappiamo che non potrà cambiare, una volta assegnato, quindi non è un tipo veramente polimorfo!\smallskip
+
+Il tipo degli elementi della lista è temporaneamente settato a \texttt{'\_weak}, per poi \textbf{essere ricalcolato al primo utilizzo}.
+
+\begin{lstlisting}
+ val s : < pop : '_weak option; push : '_weak -> unit > = <obj>
+\end{lstlisting}
+
+\subsubsection{Costruzione di oggetti tramite funzioni}
+Possiamo restituire un oggetto come risulatato di una funzione; tra i parametri potranno ad esempio esserci dei valori di inizializzazione:
+
+
+\begin{lstlisting}
+ (* funzione che costruisce oggetti inizializzati con init *)
+ let stack init = object
+    val mutable v = init
+
+    method pop =
+        match v with
+         | hd :: tl ->
+            v <- tl;
+            Some hd
+         | [] -> None
+    method push hd =
+        v <- hd :: v
+ end ;;
+\end{lstlisting}
+
+\newpage
+\subsubsection{Polimorfismo di oggetti}
+Se definiamo una funzione il cui corpo accede ad un metodo di un \textbf{oggetto che non è ancora stato definito}, il tipo del metodo è inferito se possibile, se no sarà polimorfo.\smallskip
+
+Una \textbf{notazione} interessante è la seguente:
+
+\begin{lstlisting}
+let area sq = sq#width * sq#width ;;
+\end{lstlisting}
+Il cui tipo è:
+\begin{lstlisting}
+ val area : < width : int; .. > -> int = <fun>
+\end{lstlisting}
+
+Le \textbf{parentesi angolate} indicano che l'oggetto su cui è chiamata la funzione deve avere \textbf{almeno} ($\implies$ \textbf{subtyping strutturale}) un campo \texttt{width} di tipo intero.\smallskip
+
+Possiamo anche definire tipi utilizzando le parentesi angolate:
+
+\begin{lstlisting}
+ type shape = < area : float >
+ type square = < area : float; width : int >
+\end{lstlisting}
+
+È evidente che \texttt{square} è sottotipo di \texttt{shape}, e quindi ovunque è possibile usare un tipo \texttt{shape} possiamo usare al suo posto un tipo \texttt{square} (\textbf{principio di sostituzione})
+
+\paragraph{Operatore di coercion} La conversione da \texttt{square} a \texttt{shape} non è però implicita: Si deve usare esplicitamente l'\textbf{operatore di coercion} \texttt{:>}
+
+\begin{lstlisting}
+ let lis2 = ( square 5 :> shape ) :: lis1 ;;
+\end{lstlisting}
+
+Si noti quindi che in OCaml i due concetti di \textbf{polimorfismo di oggetti} (funzioni che prendono oggetti di ``almeno'' un certo tipo) e \textbf{principio di sostituzione} (appena visto) sono trattati in modo diverso.
+
+\subsubsection{Perché OCaml non fa coercion implicita come Java}
+
+OCaml non fa \textbf{mai conversioni di tipo implicite}, mentre Java fa controlli dinamici di tipo svolti a runtime dall'interprete della JVM (resi più facili dal nominal subtyping).
+
+\subsubsection{Classi in OCaml}
+Per realizzare i meccanismi di ereditarietà, dato che usa lo stile \emph{object-based}, OCaml dovrebbe usare i prototipi, il cui funzionamento è troppo complicato: per questo sono introdotti anche dei costrutti di \textbf{classe}: Una classe si definisce con \textbf{class} e si instanzia con \textbf{new}
+
+\begin{lstlisting}
+ class istack = object                      (* classe per stack di interi *)
+    val mutable v = [0; 2]                  (* inizializzato non vuoto *)
+    method pop =
+        match v with
+        | hd :: tl ->
+            v <- tl; 
+            Some hd
+        | [] -> None
+    method push hd =
+        v <- hd :: v
+ end ;;
+
+ let s = new istack ;;
+\end{lstlisting}
+
+Le classi possono essere \textbf{parametriche}:
+\begin{lstlisting}
+ class ['a] stack init = object             (* classe polimorfa per stack *)
+    val mutable v : 'a list = init          (* init e' parametro costruttore *)
+    method pop = ....
+    method push hd = ....
+    end;;
+\end{lstlisting}
+
+Il tipo di un'istanza della classe è:
+\begin{lstlisting}
+ let s = new stack ["pippo"] ;;
+ (* => val s : string stack = <obj> *)
+\end{lstlisting}
+\textbf{Nota:} \texttt{string stack} è un \textbf{alias} per \texttt{<pop : string option; push : string -> unit>}
+
+
+[Ereditarietà con inherit]
+\end{document}

@@ -1,0 +1,763 @@
+\documentclass[a4paper,10pt,oneside]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage[italian]{babel}
+\usepackage{mathtools}
+\usepackage{systeme}
+\usepackage{multicol}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{proof}
+\usepackage{amsmath}
+\usepackage{courier}
+\usepackage{wrapfig}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+
+\usepackage{mdframed}
+
+\usetikzlibrary{arrows.meta}
+\graphicspath{{./images/}}
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language = sql,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+\setlength{\parindent}{0em}
+\setlength{\parskip}{0em}
+
+\newtheoremstyle{break}
+{\topsep}{\topsep}{\hangindent=1em}{}{\bfseries}{\\}{2pt}{}
+
+\theoremstyle{break}
+\newtheorem{deff}{Definizione}[section]
+
+\newtheorem{prop}{Proposizione}[subsection]
+\newtheorem{teo}{Teorema}[subsection]
+\newtheorem*{es}{Esempio}
+\newtheorem{cor}{Corollario}[teo]
+
+\newcommand{\dom}{\text{dom}}
+\newcommand{\naturals}{\mathbb {N}}
+\newcommand{\RE}{\mathcal {RE}}
+\newcommand{\R}{\mathcal {R}}
+\newcommand{\id}{\text{id}}
+\newcommand{\rec}{\text{rec}}
+
+\begin{document}
+\section{Elementi di calcolabilità}
+\subsection{Alcuni risultati classici}
+\begin{mdframed}
+\begin{teo} [Numero funzioni calcolabili, esistenza funzioni non calcolabili]
+\begin{enumerate}
+ \item []
+ \item Le funzioni calcolabili sono $\#(\naturals)$; Inoltre le funzioni calcolabili \textbf{totali} sono $\#(\naturals)$.
+ \item Esistono funzioni non calcolabili
+\end{enumerate}
+\end{teo}
+
+\dotfill
+
+\paragraph{Intuizione:} \textbf{Le funzioni calcolabili sono tante quante le macchine di Turing}, che si possono enumerare. Inoltre, \textbf{ci sono più funzioni che funzioni calcolabili}
+
+\dotfill
+
+\begin{proof}
+\begin{enumerate}
+ \item []
+ \item Esistono \emph{almeno} $\#(\naturals)$ funzioni calcolabili (totali) poiché possiamo costruire $\#(\naturals)$ MdT $M_i$ che:
+ \begin{itemize}
+  \item Svuotano il nastro
+  \item Scrivono la stringa $|^i$
+  \item Si arrestano
+ \end{itemize}
+ Le funzioni calcolabili \emph{non sono più di} $\#(\naturals)$, poiché le MdT si possono enumerare.
+ \item Con una costruzione analoga a quella di Cantor (argomento diagonale) si vede che $\{f : \naturals \to \naturals\}$ ha cardinalità $2^{\aleph_0}$, quindi ci sono più funzioni di quante funzioni calcolabili.
+\end{enumerate}
+\end{proof}
+\end{mdframed}
+
+\begin{mdframed}
+\begin{teo}[Padding Lemma]
+ Ogni funzione calcolabile $\varphi_x$ ha $\#\mathbb (N)$ indici, e l'insieme degli indici:
+ \[ A_x \text{ t.c. } \forall y \in A_x \,\,.\,\, \varphi_y = \varphi_x \]
+
+ si può costruire mediante una \textbf{funzione ricorsiva primitiva}.
+\end{teo}
+\dotfill
+\paragraph{Intuizione:} Posso inserire uno \textbf{skip} alla fine di un programma senza alterarne il comportamento; Per le MdT inserisco un nuovo stato ed una quintupla che non fa niente.
+
+\dotfill
+\begin{proof}
+ Per ogni MdT $M_x$, se $Q = \{ q_0, \hdots, q_k\}$, si ottiene una nuova MdT $M_{x_1}$, con $x_1 \in A_x$, aggiungendo uno stato $q_{k+1}$ ed una quintupla ``che non fa niente'': $(q_{k+1}, \#, q_{k+1}, \#, -)$.\smallskip
+
+
+ Questo processo può essere ripetuto una quantità numerabile di volte.
+\end{proof}
+
+\end{mdframed}
+
+\newpage
+
+Come si vede intuitivamente dallo schema di un interprete, \textbf{bastano un while e dei for} per rappresentare una funzione calcolabile. Detto in maniera più formale:
+
+\begin{center}
+ \it Si possono rappresentare le funzioni calcolabili come \textbf{composizione di una funzione ricorsiva primitiva ed una funzione ricorsiva generale}.
+\end{center}
+
+\begin{mdframed}
+\begin{teo}[Forma Normale - Kleene I]
+
+Esistono un predicato $T(i, x, y)$ ed una funzione $U(y)$ \textbf{calcolabili totali} e \textbf{ricorsive primitive} tali che:
+
+\[ \forall i, x . \varphi_i (x) = U(\mu y.T(i, x, y)) \]
+
+\end{teo}
+\paragraph{Nota:} Dato che $T$ è totale \textbf{converge sempre}, quindi $\mu y.T(i, x, y)$ è una \textbf{funzione ricorsiva generale}.
+
+\dotfill
+
+\paragraph{Intuizione:} $T$ è vero iff $y$ è codifica di una computazione terminante della $i$-esima MdT; $U$ dato l'indice $y$ di una computazione terminante restituisce il risultato della computazione. Componendo le due funz. si ottiene il risultato della computazione terminante di indice minimo, che è risultato di $\varphi_i(x)$
+
+\dotfill
+
+\begin{proof}
+Si dimostra mostrando due funzioni che soddisfano il requisito:
+
+\begin{itemize}
+ \item $T(i, x, y)$ è \textbf{il predicato di Kleene}:
+ \[ T(i, x, y) = tt \iff \text{ $y$ è la codifica di una computaz. \textbf{terminante} di $M_i$ con dato iniziale $x$} \]
+
+ Il calcolo di $T$ avviene tramite i seguenti passi:
+
+ \begin{enumerate}
+  \item Dato $i$, recupera la macchina $M_i$
+  \item Decodifica $y$
+  \item Dato $x$ si controlla se il risultato è una computazione terminante della forma $M_i(x) = c_0 \hdots c_n$
+ \end{enumerate}
+
+
+ Questa sequenza di passi \textbf{termina sempre} $\implies$ $T$ \textbf{totale}.
+
+ \item Sia $y$ la codifica della computazione \textbf{terminante} $M_i(x) \to ^k (h, \triangleright z \#)$, allora $U$ è tale che: \[U(y) = z\]
+
+ I passi necessari a questo calcolo sono finiti (decodifica $y$, ottieni sequenza $c_0\hdots c_n$, accedi a $c_n$) e terminano tutti, quindi anche $U$ è \textbf{totale}.
+
+\end{itemize}
+
+L'intero procedimento è \emph{\textbf{effettivo}}, quindi $U$ e $T$ sono \textbf{calcolabili} per la tesi di \textbf{Church-Turing}
+
+Inoltre le due funzioni sono \textbf{ricorsive primitive} perché
+
+\begin{itemize}
+ \item Le codifiche che usiamo lo sono
+ \item I controlli effettuati lo sono
+\end{itemize}
+
+
+\end{proof}
+\begin{cor}
+Le funzioni $T$-calcolabili sono $\mu$-ricorsive (per la \textbf{nota} del teorema).
+\end{cor}
+
+\end{mdframed}
+
+\newpage
+
+\begin{mdframed}
+\begin{teo}[Enumerazione, o della MdTU]
+ \[ \exists z . \forall \,\,i, x\,\, . \,\,\varphi_i(x) = \varphi_z(i, x) \]
+
+ Ossia esiste una \textbf{funzione calcolabile parziale} $\varphi_z$ ``a due posti'' che dati in input l'indice $i$ di una funzione calcolabile parziale $\varphi_i$ ``ad un posto'' ed il suo parametro $x$ restituisce $\varphi_i(x)$.
+\end{teo}
+
+\dotfill
+
+\begin{proof}
+Si usa $z : \varphi_z(i, x) = U(\mu y . T (i, x, y)) = \varphi_i(x)$, dove $T$ è il predicato di Kleene
+\end{proof}
+
+\dotfill\smallskip
+
+\textbf{Intuitivamente:} $M_z$ \textbf{recupera la descrizione} di $M_i$ e la applica a $x$.\newpage
+
+
+\end{mdframed}
+
+\paragraph{Applicazione parziale:} data una funzione di due argomenti, posso \emph{fissarne uno} ed ottenere una funzione ad un argomento, e.g.
+
+\[ f(x, y) = x+y \underset{\text{fisso }x=5}{\longrightarrow} f(y) = 5+y\]
+\begin{mdframed}
+\begin{teo}[Del parametro, $S_1^1$]
+Esiste una funzione $s$ calcolabile totale ed \textbf{iniettiva} tale che:
+\[\forall \,\,i, x \,\,.\,\, \varphi_{s(i, x)} = \lambda y.\varphi_i(x, y)\]
+\end{teo}
+
+\dotfill
+
+\paragraph{Intuizione:} Basta fissare ``in memoria'' (o ambiente) il \textbf{parametro} $x$. L'indice della funzione con il parametro fissato dipende dalla scelta del parametro e dall'indice della funzione ``a due posti''.
+
+\dotfill
+
+\begin{proof} [Dimostrazione (sempre molto ``intuitiva'')] Si ``predispone lo stato iniziale'', fissando $x$ in anticipo (e.g. si sostituisce l'operazione che legge il parametro $x$ con $x := k$. Questa è una \textbf{procedura effettiva}); In questo modo abbiamo che una tale funzione esiste, ma è iniettiva?\smallskip
+
+Se non lo fosse, si può costruire $s'$ che genera indici (che esistono e sono $\aleph_0$ per il padding lemma) in modo strettamente crescente. La funzione s' è strettamente crescente e totale, perciò è iniettiva.
+\end{proof}
+
+\dotfill
+
+\paragraph{Generalizzazione:} Data una funzione di $m + n$ parametri ne posso fissare $m$ ed ottengo una funzione n-aria.
+
+\begin{teo}[Del parametro, $S_n^m$ -- non dimostrato]
+$\forall \,\,m, n \geq 0\,\, \exists\,\, s \text{ calcolabile totale \textbf{iniettiva} ad $m+1$ posti t.c. }\forall i, (x_1, \hdots, x_m)$:
+\[ \varphi_s^{(n)}(i, \vec x) = \lambda \vec y . \varphi_i^{(m+n)} (\vec x, \vec y)\]
+\end{teo}
+
+
+Si noti come il teorema del parametro e quello di enumerazione siano ``l'uno l'inverso dell'altro'', in quanto uno ``aumenta'' il numero di argomenti e l'altro lo diminuisce.
+
+
+\end{mdframed}
+
+
+L'importanza dei teoremi di enum e parametro è sintetizzata nel seguente teorema, non dimostrato:
+\begin{mdframed}
+\begin{teo}[espressività]
+Un formalismo è Turing-equivalente \textbf{\emph{se e solo se}}:
+\begin{itemize}
+ \item Vale il teorema di enumerazione (i.e. ha un algoritmo ``universale'')
+ \item Vale il teorema del parametro
+\end{itemize}
+
+\end{teo}
+
+\end{mdframed}
+
+\newpage
+\begin{mdframed}
+\begin{teo}[Di Ricorsione, Kleene II]
+\[ \forall f \text{ calc. totale } \exists(n) . \varphi_n = \varphi_{f(n)} \]
+
+Per ogni funzione calcolabile totale esiste un indice che ne è \textbf{punto fisso}, ossia tale che $\varphi_n = \varphi_{f(n)}$
+\end{teo}
+
+\dotfill
+
+\paragraph{Intuizione:} La funzione $f$ ``trasforma'' programmi in altri programmi; quando si considera il punto fisso, la trasformazione operata \textbf{non cambia la funzione calcolata}, ovvero trasforma un programma in un programma diverso \textbf{con la stessa semantica}.\smallskip
+
+\dotfill
+
+\begin{proof}
+Definiamo la seguente funzione calcolabile:
+\[ \psi(u, z) = \begin{cases}
+                                  \varphi_{\varphi_u(u)} (z) &\text{se } \varphi_u(u) \downarrow\\
+                                  \text{indefinita} & \text{altrimenti}
+                                 \end{cases}
+ \quad\quad (1) \]
+\begin{itemize}
+ \item $\psi(u, z) = \varphi_i(u, z)$ \hfill (Church-Turing, calcolabile $\implies \exists$ indice $i$)
+ \item $\exists g : \varphi_i (u, z) = \varphi_{g(i, u)}(z)$ \hfill  (Teorema del parametro)
+ \item Definisco: $\lambda x . g(i, x) = d(x)$\hfill  (\emph{Barbatrucco})
+ \item $\implies \varphi_{g(i, u)}(z) = \varphi_{d(u)}(z)$ \hfill (Applico il \emph{Barbatrucco})
+ \item $f(d(x)) = \varphi_v(x)$ \hfill (CT, calcolabile $\implies \exists$ indice $v$)
+ \item \[f,d \text{ totali }\implies f(d(x)) = \varphi_v(x)\text{ totale }\implies \varphi_v(v) \downarrow \quad\quad (2)\]
+ \item $\implies \varphi_{d(v)}(z) = \psi(v, z) = \varphi_{\varphi_u(u)}(z)$ \hfill (1)
+ \item \[ n := d(v) \quad\quad\quad (3)\]
+\end{itemize}
+
+Adesso possiamo dimostrare che $n$ è punto fisso di $f$:
+\[ \varphi_n \overset{(3)}{=} \varphi_{d(v)} \overset{(1)}{=} \varphi_{\varphi_v(v)} \overset{(2)}{=} \varphi_{f(d(v))} \overset{(3)}{=} \varphi_{f(n)} \]
+
+\end{proof}
+
+\end{mdframed}
+\bigskip
+\subsection{Problemi insolubili e riducibilità}
+\begin{deff}[Insieme ricorsivo]
+ Un insieme $I$ si dice \textbf{ricorsivo} se la sua funzione caratteristica è \textbf{calcolabile totale}.
+\end{deff}
+
+\paragraph{Intuizione} Esiste un algoritmo che, dato $x$ in input, determina se $x \in I$ in un numero finito di passi.
+
+\paragraph{Nota:} talvolta con ``funzione ricorsiva'' si intende ``funzione ricorsiva generale totale'', mentre le funzioni ricorsive generali \emph{parziali} vengono dette semplicamente ``ricorsive generali''.
+
+\begin{deff}[Insieme ricorsivamente enumerabile]
+
+Un insieme $I$ si dice \emph{ricorsivamente enumerabile} se e solo se $\exists i.I = dom(\varphi_i)$, ossia sse è dominio di almeno una funzione calcolabile parziale. 
+\paragraph{Intuizione} 
+$S$ è r.e. se $\exists$ algo che, dato in input $x$, termina se $x \in S$; alternativamente, r.e. se esiste un algoritmo capace di enumerare gli elementi di $S$
+
+\end{deff}
+\newpage
+\begin{mdframed}
+\begin{teo} $I$ ricorsivo $\implies I$ ricorsivamente numerabile
+\end{teo}
+\begin{multicols}{2}
+\begin{proof}
+ La funzione $\varphi_i$ di cui $I$ è dominio converge su $x$ se e solo se $\chi_I(x) = 1$, e.g:
+
+  \[ \varphi_i = \begin{cases}
+                  1 & \chi_I(x) = 1\\
+                  \text{indef.} & \text{altrim.}
+                 \end{cases}
+ \]
+
+\end{proof}
+
+
+\end{multicols}
+
+\end{mdframed}
+\begin{mdframed}
+
+
+\begin{teo} $I$ (e $\bar I$) ricorsivamente enumerabili $\iff$ $I$ (e $\bar I$) ricorsivi.
+
+\end{teo}
+
+\dotfill
+
+\begin{proof}
+ ``Se'': vd punto precedente. ``Solo se'': Siano $\varphi_i(x)$ e $\varphi_{\bar i}(x)$ le funzioni i cui domini sono risp. $I$ e $\bar I$; Allora si esegue il seguente ciclo:
+ \begin{itemize}
+  \item Esegui un passo nel calcolo di $\varphi_i(x)$; se $\varphi_i(x)\downarrow$ allora $x \in I$, $\chi_I(x) = 1$
+  \item Altrimenti esegui un passo nel calcolo di $\varphi_{\bar i}$; se $\varphi_{\bar i} \downarrow$ allora $x \notin I$, $\chi_{\bar I} = 0$.
+ \end{itemize}
+
+\end{proof}
+\end{mdframed}
+
+\begin{mdframed}
+
+ \begin{teo}
+
+ \begin{multicols}{2}
+   $I \neq \emptyset$ è ricorsivamente enumerabile $\iff \exists f$ calcolabile tale che $I = \text{imm} (f)$
+   
+     \begin{center}
+  \begin{tabular}{|c|c|c|c}
+
+   9 & 13 & 18 & 24\\
+   \hline
+   5 & 8 & 12 & 17\\
+   \hline
+   2 & 4 & 7  & 11\\
+   \hline
+   0 & 1 & 3  & 6\\
+   \hline
+  \end{tabular}
+  \end{center}
+ \end{multicols}
+  \end{teo}
+ 
+ \paragraph{Intuizione} $(\Rightarrow)$
+  Devo costruire una funzione la cui immagine è $I$. \smallskip
+
+  Per ogni $m, n \in \naturals$, sia $\langle m, n \rangle$ la codifica di $(m, n)$, ossia l'elemento in posizione $(m, n)$ della tabella:
+  \begin{itemize}
+   \item Se $\varphi_i(n)$ termina in $m$ passi, $f(\langle m, n \rangle) = n$
+   \item Se no $f(\langle m, n \rangle) = \bar n$ che si ottiene spostandosi ripetutamente all'intero successivo $\langle m, n \rangle + 1$ nella tabella, finché per qualche $\langle m, \bar n \rangle$ vale che $\varphi_i(\bar n)$ termina in $m$ passi.
+  \end{itemize}
+
+
+ \dotfill
+
+ \begin{proof}
+  \begin{itemize}
+   \item []
+   \item[$(\Rightarrow)$] $I = \text{dom}(\varphi_i) \neq \emptyset$, costruisco $f$ : $I = \text{imm}(f)$
+   \begin{itemize}
+    \item Si cerca un elemento di $I$ mediante un procedimento a coda di colomba
+    \item Sia $n$ l'argomento di $\varphi_i$ ed $m$ il numero di passi nel calcolo di $\varphi_i(n)$.
+    \item Chiamiamo $\langle n, m \rangle$ la codifica di $(m, n)$
+    \item Si calcolano $m$ passi del calcolo di $\varphi_i(n)$:
+    \begin{itemize}
+     \item se il calcolo termina, si pone $f(\langle m, n \rangle) = n$;
+     \item se il calcolo non termina, si prosegue (si considera $\langle m, n \rangle + 1$ muovendosi ``a coda di colomba'') finché per qualche $m, \bar n$ il calcolo non si arresta, e si pone $f(\langle m, n \rangle) = \bar n$.
+    \end{itemize}
+
+    $\bar n$ è sicuramente in $I$, quindi con questo procedimento si generano tutti gli elementi di $I$.
+   \end{itemize}
+    \item[$(\Leftarrow)$] (\emph{non riportata da Degano, ma credo sia questo:}) Se $I$ è immagine di una funzione calcolabile totale $f$, allora è dominio della funzione $g$ costruita considerando, per ogni $y \in I$, \textbf{uno} degli $x : f(x) = y$ e ponendo $g(y) = x$.
+  \end{itemize}
+
+ \end{proof}
+
+
+\end{mdframed}
+
+\newpage
+\begin{deff}
+  Chiamiamo $rec$ l'insieme delle funzioni ``ricorsive'', allora:
+  \[I \text{ è }\begin{cases}
+    \text{ricorsiva} &\iff \chi_I \in rec = \{ \varphi_x : \text{ dom } (\varphi_x) = \naturals \}\\
+    \text{ric. enumerabile} &\iff I = \text{ dom } (\varphi_x)
+    \end{cases}
+\]
+\end{deff}
+
+Inoltre chiamiamo:
+\begin{multicols}{2}
+
+\begin{itemize}
+ \item L'insieme degli insiemi ricorsivi $\R$
+ \item L'insieme degli insiemi r.e. $\RE$
+ \item L'insieme degli insiemi non r.e. $non\RE$
+\end{itemize}
+E vedremo che $\R \subsetneq \RE \subsetneq non\RE$
+\end{multicols}
+
+
+Se $I$ è ricorsivamente enumerabile, posso determinare l'appartenenza all'insieme $I$ in tempo finito, ma non posso determinare la non appartenenza. Ad esempio:
+\begin{mdframed}
+
+\begin{prop}
+\label{K}
+L'insieme:
+\[ K = \{ i : \varphi_i(i) \downarrow\} \]
+È ricorsivamente enumerabile.
+\end{prop}
+
+\dotfill
+
+\begin{proof}
+ $K$ è dominio di:
+ \[\psi(n) = \begin{cases}
+              1 & \text{se } \varphi_n(n)\downarrow\\
+              indef & \text{o/w}
+             \end{cases}
+\]
+\end{proof}
+
+\end{mdframed}
+
+Ma \textbf{non tutti gli insiemi r.e. sono ricorsivi!} Infatti:
+
+\begin{mdframed}
+
+\begin{prop} L'insieme:
+\[ K = \{ i : \varphi_i(i) \downarrow\} \]
+Non è ricorsivo.
+\end{prop}
+
+\dotfill
+
+\paragraph{Significato intuitivo}
+
+Non esiste un algoritmo per decidere se $x \in K$ o no. Il problema è \emph{insolubile}.
+
+\dotfill
+
+\begin{proof}
+Per assurdo: sia $k$ ricorsivo $\implies \chi_K \in rec$, cioè è calcolabile totale. Sia:
+
+\[ \psi(n) = \begin{cases}
+              \varphi_n(n) + 1 & \text{se } n \in K (\iff \chi_K(n) = 1 \iff \varphi_n(n) \downarrow)\\
+              0 & \text{o/w}
+             \end{cases}
+ \]
+
+ Se $\chi_K$ è ricorsiva (i.e. calcolabile totale) allora anche $\psi(n)$ lo è (è definita a partire da $\chi_K$), ma se scegliamo un qualsiasi $\bar n$ come indice della funzione:
+\[\psi(\bar n) \neq \varphi_{\bar n} (\bar n)\]
+
+\end{proof}
+
+\dotfill
+
+\paragraph{Corollario} $\bar K$ non è ricorsivamente enumerabile, poiché per il teorema su $I$ e $\bar I$ abbiamo che $K$ non ric $\implies \lnot(K$ r. $\wedge\,\, \bar K$ r.$) \implies \lnot(K$ r. e. $\wedge\,\, \bar K$ r. e.$)$, ma dato che $K$ è r.e. allora $\bar K$ è non r.e.
+
+Potremmo dire che $\bar K \in \text{co-}\mathcal{RE}$, la classe dei problemi i cui complementi sono r.e.
+\end{mdframed}
+\newpage
+
+\begin{mdframed}
+ \begin{teo}[Problema della fermata, in realtà altro \textbf{Corollario}]
+  Sia $K_0 = \{(x, y) : \varphi_y(x) \downarrow\} = \{ (x, y) : \exists z . T(y, x, z) \}$, dove $T$ è il pred. di Kleene.\smallskip
+
+  Questo non è ricorsivo.
+
+  \dotfill
+
+ \end{teo}
+ \begin{proof}
+  $x \in K \iff (x, x) \in K_0$, quindi se $K_0$ fosse ricorsivo lo sarebbe anche $K$.
+ \end{proof}
+
+\end{mdframed}
+
+Questo è un esempio di \textbf{riduzione}.
+
+\begin{deff}
+ $f$ è riduzione da $A$ a $B$ se $x \in A \iff f(x) \in B$, e si indica: $a \leq_f B$
+\end{deff}
+\begin{deff}
+Dato un insieme di funzioni $\mathcal{F}$, $A \leq_\mathcal{F}B \iff \exists f \in \mathcal F : A \leq_f B$
+\end{deff}
+
+\begin{center}
+\begin{tikzpicture}
+ \draw (-2.5, -2.5) rectangle (2.5,2.5);
+ \draw (0,0) circle (2);
+ \draw (.3,0) circle (1.2);
+ \node () at (1.6,1.6) {$\mathcal E$};
+ \node () at (2,2.8) {$\mathcal H$};
+ \node () at (-1,.6) {$\mathcal D$};
+ \node (b) at (-.3,.5){$B$};
+ \node (d) at (.6,.7){$D$};
+ \node (c) at (1,-1.5){$C$};
+
+ \draw[-latex] (b) -- (d);
+ \draw[-latex] (d) -- (c);
+ \draw[-latex, dashed] (b) -- (c);
+ \draw[{latex}{Rays}-, dashed] (-.4,-.4) -- (-.8, -.8);
+\end{tikzpicture}
+\end{center}
+
+Una relazione di riducibilità è un \textbf{preordine}, i.e. una relazione transitiva e riflessiva.
+
+Si dice che $\mathcal F$ classifica $\mathcal D$ ed $\mathcal E$ sse:
+\begin{enumerate}
+ \item $A \leq_\mathcal{F} A$ \hfill (Riflessività)
+ \item $A \leq B$, $B \leq C \iff A \leq C$ \hfill(Transitività)
+ \item $A \leq B$, $B \in \mathcal D \implies$ $A \in \mathcal D$ \hfill(no ``frecce entranti'' in $\mathcal D$)
+ \item $A \leq B, B \in \mathcal E \implies A \in \mathcal E$\hfill(no ``frecce entranti'' in $\mathcal E$)
+\end{enumerate}\medskip
+
+\dotfill \textsc{meta-digressione}\dotfill
+
+Le ultime due proprietà derivano dal fatto che $\mathcal D$ e $\mathcal E$ sono \textbf{ideali} del \emph{proset} $(\mathcal H, \leq)$, ossia
+
+\begin{itemize}
+ \item $\forall\,\, B \in \mathcal D ,\quad A \in \mathcal H \quad.\quad A \leq B \implies A \in \mathcal D$ \hfill (Si dice che $\mathcal D$ è \textbf{chiuso verso il basso})
+\end{itemize}
+ [Se il preordine del \emph{proset} è un ordine parziale, un ideale deve essere anche un \textbf{insieme diretto}, i.e. $a, b \in I \implies \exists c : a \leq c, b \leq c$]
+
+
+\dotfill
+
+Le proprietà 1-4 possono anche essere espresse in modo equivalente:
+\begin{enumerate}
+ \item $\text{id} \in \mathcal{F}$
+ \item $f, g \in \mathcal F \implies f \circ g \in \mathcal F$
+ \item $f \in \mathcal F$, $B \in \mathcal D \implies \{f : f(x) \in B\} \in \mathcal D$
+ \item $f \in \mathcal F$, $B \in \mathcal E \implies \{f : f(x) \in B\} \in \mathcal E$
+\end{enumerate}
+\newpage
+
+Supponiamo che $\leq_\mathcal{F}$ classifichi $\mathcal{D}$ ed $\mathcal{E}$.
+
+\dotfill
+
+\begin{deff}
+ $H$ si dice $\leq_\mathcal{F}$-arduo per $\mathcal{E}$ se e solo se:
+ 
+ \[ \forall A \in \mathcal{E} : A \leq_\mathcal{F} H \]
+\end{deff}
+
+\paragraph{Intuizione:} Ogni $A$ è al più \emph{difficile} quanto $H$. Parallelismo con i problemi $NP$-ardui, i.e. i problemi ``più difficili'' della classe $NP$.
+
+\paragraph{Difficile?} Perché un problema $A$ si possa ridurre ad un problema $B$, $B$ deve essere difficile almeno quanto $A$. Possiamo quindi interpretare $A \leq B$ come $A$ difficile al più quanto $B$.
+
+\dotfill
+
+\begin{deff}
+ $C$ si dice $\leq_\mathcal{F}$-completo per $\mathcal{E}$ se e solo se:
+ 
+ \[ C \text{ è }\leq_\mathcal{F}\text{-arduo per } \mathcal{E}, \quad H \in \mathcal{E} \]
+\end{deff}
+
+\paragraph{Intuizione:} Se $C$ è difficile quanto o più di ogni altro elemento di $\mathcal{E}$ ed è in $\mathcal E$, vuol dire che \textbf{il più difficile} problema\footnote{si parla di problema in senso di problema di decisione di appartenenza all'insieme} che è interno ad $\mathcal E$.\smallskip
+
+Da ciò si può inoltre intuire che due problemi completi rispetto ad $\mathcal E$ saranno equivalenti, i.e. l'uno si può ridurre nell'altro.
+
+\dotfill
+
+\begin{deff}
+ Con \textbf{gradi} di una relazione di riduzione si intendono le classi di equivalenza rispetto alla relazione $\equiv$, dove:
+ 
+ \[A \equiv B \iff A \leq B, B \leq A\]
+\end{deff}
+
+\dotfill
+
+\begin{mdframed}
+ \begin{prop}
+  Se $\leq$ classifica $\mathcal D$ ed $\mathcal E$, $\mathcal D \subseteq \mathcal E$, $C$ completo per $\mathcal E$, allora \[C \in \mathcal D \iff \mathcal D = \mathcal E\]
+ \end{prop}
+ 
+\dotfill
+\paragraph{Intuizione} S(s)e un problema $NP$-completo si trovasse nella classe $P$, si avrebbe che $P=NP$
+
+\dotfill
+
+\begin{proof}
+ \begin{itemize}
+  \item []
+  \item Se: ovvia
+  \item Solo se: $C \in \mathcal{D}$, $A \in \mathcal E$. Per completezza $A \leq C$, e per chiusura verso il basso $A \in D$; di conseguenza $\mathcal E \subseteq \mathcal D$, e dato che $\mathcal D \subseteq \mathcal E$ si ha la tesi.
+ \end{itemize}
+
+\end{proof}
+
+\end{mdframed}
+
+\newpage
+
+\begin{mdframed}
+\begin{prop}
+ $C$ $\leq$-completo per $\mathcal E$, $C \leq E$ allora anche $E$ è $\leq$-completo per $\mathcal E$
+ 
+ \dotfill
+ 
+ \begin{proof}
+ $\forall D \in \mathcal E, D \leq A$ per completezza, ma $\leq$ classifica $\mathcal{D}$ ed $\mathcal{E}$, quindi \[D \leq A,\quad A \leq B \implies D \leq B\]quindi $B$ è arduo. Ma $B \in \mathcal E$, quindi è anche completo.
+ 
+ \end{proof}
+
+\end{prop}
+
+\end{mdframed}
+
+\begin{mdframed}
+
+\begin{multicols}{2}  
+\begin{prop} L'insieme di funzioni $rec = \{\varphi_x : \dom (\varphi_x) = \naturals\}$ (delle funzioni calcolabili totali) \textbf{classifica} $\R$ ed $\RE$.
+\end{prop}
+\begin{proof} $\R \subseteq \RE$, ok
+
+ \begin{enumerate}
+  \item $\id \in \rec$, ok
+  \item $f, g \in \rec \implies f \circ g \in rec$
+  \item Siano $f \in rec$, $B \in \mathcal R$. 
+  
+  La funzione caratteristica di $\{x : f(x) \in B\}$ è $\chi_B \circ f$, calcolabile totale ($\in rec$) perché composizione di funzioni calc tot.
+  \item Siano $f \in rec$, $B \in \mathcal {RE}$. 
+  
+  La funzione \emph{semicaratteristica} di  $A=\{x : f(x) \in B\}$ è  calcolabile, quindi $A$ è dominio di una funzione calcolabile $\implies \in \RE$.
+ \end{enumerate}
+
+\end{proof}
+
+  
+ \begin{center}
+\begin{tikzpicture} 
+ \draw (-2.5, -2.5) rectangle (2.5,2.5);
+ \draw (0,0) circle (2);
+ \draw (.3,0) circle (1.2);
+ \node () at (1.6,1.6) {$\RE$};
+ \node () at (2,2.8) {$\mathcal H$};
+ \node () at (-1,.6) {$\R$};
+ \node (b) at (-.3,.5){$B$};
+ \node (d) at (.6,.7){$D$};
+ \node (c) at (1,-1.5){$C$};
+
+ \draw[-latex] (b) -- (d);
+ \draw[-latex] (d) -- (c);
+ \draw[-latex, dashed] (b) -- (c);
+ \draw[{latex}{Rays}-, dashed] (-.4,-.4) -- (-.8, -.8);
+\end{tikzpicture}
+\end{center}
+ 
+ \end{multicols}
+
+\end{mdframed}
+
+\begin{mdframed}
+ \begin{teo}
+  $K$ è $\mathcal{RE}$-completo
+ \end{teo}
+ \begin{proof}
+  Sappiamo che $K \in \RE$. Dobbiamo mostrare che $A \in \RE \implies A \leq K$\smallskip
+  
+  $A \in \RE \implies A$ è il dominio di una qualche funzione calcolabile $\psi$. \smallskip
+  
+  
+  Costruiamo adesso $\psi' = \lambda x, y . \psi(x)$; adesso usiamo \emph{il solito barbatrucco}:
+  
+  \[ \psi'(x, y) = \varphi_i(x, y) = \varphi_{s(i, x)}(y) \]
+  
+  Allora $A = \{ x \mid \varphi_{s(i, x)}(y) \downarrow \}$, e ponendo $y = s(i, x)$ si ottiene:
+  
+  \[A = \{ x \mid \varphi_{s(i, x)}(s(i, x)) \downarrow \} = \{x \mid s(i, x) \in K\}\]
+  
+ Quindi, sia $f = \lambda x.s(i, x)$:\smallskip
+ 
+ 
+ $x \in A \iff f(x) \in K$, ed $f$ è calcolabile totale per il teorema del parametro (barbatrucco)
+ \end{proof}
+
+\end{mdframed}
+\newpage
+\begin{mdframed}
+ \begin{teo}[Lemma]
+  Sia $A$ un iirf tc $\emptyset \neq A \neq \naturals$, allora: \[K \leq A \text{ oppure }K \leq \bar A\]
+ \end{teo}
+ \begin{proof}
+  Sia $i_0 : \varphi_{i_0} = \lambda y. \text{ind}$
+  
+  \begin{itemize}
+   \item $i_0 \in \bar A$: Poiché $A \neq \emptyset$ esiste un $i_1 \in A$, e si ha $\varphi_{i_1} \neq \varphi_{i_0} $ poiché $A$ è iirf. Definiamo ora:
+   
+   \[ \psi_(x, y) = ... = \varphi_{f(x)}(y) = \begin{cases}
+                                               \varphi_{i_1} (y) & x \in K\\
+                                               \text{ind} = \varphi_{i_0}(y) & \text{altrimenti}
+                                              \end{cases}
+ \]
+ 
+  \begin{itemize}
+   \item $x \in K \implies \varphi_{f(x)} = \varphi_{i_1}$, e dato che $i_1 \in A$ ($A$ iirf) vale $f(x) \in A$
+  
+   \item $x \notin K \implies \varphi_{f(x)} = \varphi_{i_0}$, e dato che $i_0 \notin A$ ($A$ iirf) vale $f(x) \not\in A$  
+  \end{itemize}
+Quindi si ha che $K \leq A$.
+  \item $i_0 \in A$: Poiché $A \neq \naturals$ esiste $i_1 \notin A$; stessa $\psi$: 
+  \begin{itemize}
+   \item $x \in K \implies \varphi_{f(x)} = \varphi_{i_1}$, e dato che $i_1 \notin A$ ($A$ iirf) vale $f(x) \notin A$
+   \item $x \notin K \implies \varphi_{f(x)} = \varphi_{i_0}$, e dato che $i_0 \in A$ ($A$ iirf) vale $f(x) \in A$
+   \end{itemize}
+Quindi si ha che $K \leq \bar A$.
+  \end{itemize}
+ \end{proof}
+
+\end{mdframed}
+
+\begin{mdframed}
+ \begin{teo}[Rice]
+  Sia $\mathcal F$ una classe di funzioni calcolabili, e $I = \{ n | \varphi_n \in \mathcal F \}$ (iirf). Questo insieme è ricorsivo se e solo se $\mathcal{A} = \emptyset$ oppure è la classe di tutte le funzioni calcolabili.
+ \end{teo}
+ \begin{proof}
+  $I$ è iirf, quindi se diverso da $\emptyset$ e $\naturals$ non può essere ricorsivo, poiché per il lemma valgono una tra:
+  \begin{itemize}
+   \item $K \leq A$, $K$ non ricorsivo $\implies$ $A$ non ricorsivo
+   \item $K \leq \bar A \implies \bar K \leq A$, $\bar K$ non ricorsivo $\implies$ $A$ non ricorsivo.
+  \end{itemize}
+  
+  $\emptyset$ e $\naturals$ sono banalmente ricorsivi.
+
+ \end{proof}
+
+\end{mdframed}
+
+\end{document}
+

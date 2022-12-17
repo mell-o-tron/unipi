@@ -1,0 +1,849 @@
+\documentclass[a4paper,10pt,oneside]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage[italian]{babel}
+\usepackage{mathtools}
+\usepackage{systeme}
+\usepackage{multicol}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{proof}
+\usepackage{amsmath}
+\usepackage{courier}
+\usepackage{wrapfig}
+\usepackage{centernot}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+
+\usepackage{mdframed}
+
+\usetikzlibrary{arrows.meta}
+\graphicspath{{./images/}}
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    language = sql,
+    backgroundcolor=\color{backcolour},
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+\setlength{\parindent}{0em}
+\setlength{\parskip}{0em}
+
+\newtheoremstyle{break}
+{\topsep}{\topsep}{\hangindent=1em}{}{\bfseries}{\\}{2pt}{}
+
+\theoremstyle{break}
+\newtheorem{deff}{Definizione}[section]
+
+\newtheorem{prop}{Proposizione}[subsection]
+\newtheorem{teo}{Teorema}[subsection]
+\newtheorem*{es}{Esempio}
+\newtheorem{cor}{Corollario}[teo]
+
+\newcommand{\dom}{\text{dom}}
+\newcommand{\naturals}{\mathbb {N}}
+\newcommand{\RE}{\mathcal {RE}}
+\newcommand{\R}{\mathcal {R}}
+\newcommand{\id}{\text{id}}
+\newcommand{\rec}{\text{rec}}
+\newcommand{\SI}{\textsc{si}}
+\newcommand{\NO}{\textsc{no}}
+\newcommand{\bigo}{\mathcal O}
+\begin{document}
+ 
+\section{Elementi di complessità}
+\subsection{Misure di complessità deterministiche}
+
+\begin{deff}[Macchina \emph{``acchiappanastri''}]
+ MdT a $k$ nastri: $M = (Q, \Sigma, \delta, q_0)$, con:
+ \begin{itemize}
+  \item $\#, \triangleright \in \Sigma$, $L, R, - \notin \Sigma$
+  \item $\SI, \NO \notin Q$
+  \item $\delta : Q \times \Sigma^k \to Q \cup \{\SI, \NO\} \times (\Sigma \times\{L, R, -\})^k$, funzione soggetta alle stesse condizioni della definizione ad un nastro.
+ \end{itemize}
+ 
+ \begin{multicols}{2}
+ La funzione di transizione cambia perciò lo stato globale e scrive/muove su tutti i nastri:
+ 
+ \[ \delta (q, \sigma_1, \hdots, \sigma_k) = (q', (\sigma_1', D_1), \hdots , (\sigma_k', D_k)) \]
+
+ Ed una configurazione della MdT ha la forma:
+ 
+ \[ (q, u_1\sigma_1v_1, \hdots, u_k\sigma_kv_k) \]
+ 
+ \end{multicols}
+
+\end{deff}
+
+\begin{deff} [misura del tempo come numero di passi]
+ $t$ è il tempo richiesto da una MdT $M$ a $k$ nastri per decidere il caso $x \in I$ se 
+ \[ (q_0, \underline \triangleright x, \underline \triangleright , \hdots \underline \triangleright ) \to^t (H, w_1, \hdots, w_k)\hspace{1cm} H \in {\SI, \NO} \]
+\end{deff}
+
+\begin{deff} [misura del tempo \textit{in funzione della taglia} di $x$]
+$M$ \textbf{decide $I$ in tempo deterministico $f$} se per ogni dato
+di ingresso $x$ il tempo $t$ richiesto da $M$ per decidere $x$ è minore di/è uguale a $f(|x|)$, dove con $|x|$ si indica la \textbf{taglia} del dato $x$.
+\end{deff}
+
+\begin{deff}[Classe $TIME(f)$]
+\[TIME(f) = \{I \mid \exists M \text{ che decide } I \text{ in tempo deterministico  }f\}\]
+\end{deff}
+
+\begin{mdframed}
+ 
+\begin{teo}[Riduzione del numero di nastri]
+ Data una macchina a $k$ nastri $M$ che decide $I$ in tempo deterministico $f$, allora esiste una macchina $M'$ ad un solo nastro che decide $I$ in tempo deterministico $\bigo (f^2)$
+\end{teo}
+
+\begin{proof}[Traccia della dimostrazione.] Costruiamo $M'$ che simula $M$, rappresentando ogni configurazione come segue, usando le parentesi angolate per separare i vari nastri.
+
+ \[ (q, \triangleright w_1\sigma_1u_1, \hdots, \triangleright w_k\sigma_ku_k )  \mapsto (q, \triangleright \langle w_1\bar\sigma_1u_1 \rangle \hdots \langle w_k\bar\sigma_ku_k \rangle) \]
+
+ I $\bar \sigma_i$ sono simboli speciali che sono sostituiti ai simboli $\sigma_i$ quando il cursore è su di essi.
+ 
+\begin{itemize}
+ \item Anzitutto $M'$ genera la configurazione iniziale di $M$: $ (q_0, \triangleright x, \triangleright , \hdots, \triangleright )  \mapsto (q_0, \triangleright \langle x\rangle \big [\langle\rangle\big]^{k-1}) $
+ 
+ Per fare ciò bastano $2k + \#\Sigma$ nuovi stati ed un numero di passi dell'ordine di $|x|$;
+ 
+ \textbf{Idea} Si deve spostare $x$ di un posto, il che comporta al più $\#\Sigma$ nuovi stati e $\bigo(|x|)$ passi. Inoltre Si devono scrivere le parentesi, quindi ci vogliono altri $\sim 2k$ stati.
+
+ \item Per simulare un passo la macchina deve scorrere il dato d'ingresso (da sinistra a destra e viceversa due volte) per determinare quali simboli sono da aggiornare e conseguentemente aggiornarli. 
+ 
+ \textbf{Osservazione cruciale}: non posso toccare un numero di caselle maggiore del numero di passi che compio.
+ 
+ Di conseguenza, la lunghezza del nastro è al più $K = k(f(|x|) + 2) + 1$ (contando parentesi e respingente). Di conseguenza il numero di passi di $M'$ è $\bigo (f(|x|)^2)$
+ \end{itemize}
+\end{proof}
+\end{mdframed}
+\newpage
+
+\paragraph{Stabilità delle MdT} Il teorema appena dimostrato mostra che miglioramenti che siano accettabili \emph{algoritmicamente} (e.g. aggiungere nastri) non solo non cambiano le funzioni calcolate, ma \textbf{non modificano il tempo richiesto se non polinomialmente}.\smallskip
+
+\textbf{Corollario:}\,\, Le macchine parallele sono polinomialmente più veloci di quelle sequenziali.\bigskip
+
+
+Abbiamo inoltre osservato che \textbf{non si può usare più spazio che tempo}. \hfill (Osservazione 1)
+
+\begin{mdframed}
+ \begin{teo}[Accelerazione lineare MdT]
+ \[I \in TIME(f) \implies \forall \epsilon \in \mathbb{R}^+ .\,\, I \in TIME (\epsilon \cdot f(n) + n + 2)\]
+ \end{teo}
+
+ \dotfill
+
+ \paragraph{Idea:} Se si considera una MdT $M'$ in cui codifichiamo $m$-ple di caratteri di $M$ con un solo carattere, allora la computazione sarà svolta più velocemente da $M'$ (e.g. esempio delle barrette [DEG 3.2.8]).
+
+ \dotfill
+
+ \begin{proof}[Idea della dimostrazione]
+ La dimostrazione è lunga e piena di dettagli insidiosi; \smallskip
+
+ Ciò che invece dimostriamo è che, codificando come nell'\textbf{Idea}, possiamo determinare il numero $m$ di simboli di $M$ da ``compattare'' in un unico simbolo di $M'$ in funzione del solo $\epsilon$.\smallskip
+
+ Gli stati di $M'$ hanno la forma $(q, \sigma_{i_1} \hdots \sigma_{i_m}, k)$, in modo da rappresentare il fatto che $M$ è nello stato $q$, con il cursore sul $k$-esimo carattere della stringa $\sigma_{i_1} \hdots \sigma_{i_m}$.\smallskip
+
+ Allora $m$ passi di $M$ possono essere simulate da $M'$ in al più \textbf{sei passi}:
+ \begin{itemize}
+  \item 4 passi per esaminare i caratteri (i.e. blocchi di $m$ caratteri) adiacenti al corrente (\texttt{LRRL})
+  \item 2 passi per modificare il corrente ed uno tra i blocchi a destra e a sinistra.
+ \end{itemize}
+
+ Di conseguenza $M'$ farà $|x| + 2 + 6 \cdot \Big\lfloor \frac{f(|x|)}{m} \Big\rfloor$ passi ($|x| + 2$ per \textit{condensare} il dato in ingresso)
+
+ Infine, basta sostituire $m = \Big\lfloor \frac{6}{\epsilon} \Big\rfloor$ e si ottiene $I \in TIME(\epsilon \cdot \Big(\frac{f(n)}{\centernot 6}\Big)\cdot \centernot6 + n + 2)$
+ \end{proof}
+
+\end{mdframed}
+
+ \begin{deff}
+  Definiamo la classe $\mathcal P$ come segue:
+
+  \[\mathcal P = \bigcup_{k \geq 1} TIME (n^k)\]
+ \end{deff}
+
+Consideriamo solo gli $n^k$ poiché
+\[c_1 x^k + c_2x^{k-1} + \hdots + c_k\]
+
+Gli elementi della forma $c_i x^i$, per $i < k$ spariscono asintoticamente, mentre il $c_1$ può essere eliminato grazie al teorema di accelerazione lineare.
+
+\paragraph{Cambiare modello è operazione polinomiale} Ma bisogna stare attenti, e.g. se in una Random Access Machine conto le moltiplicazioni anziché somme ho sbagliato!
+
+\begin{deff}
+ [MdT a $k$ nastri di tipo I/O]
+
+ \[ \delta(q, \sigma_1, \hdots, \sigma_k) = (q', (\sigma_1', D_1), \hdots, (\sigma_k', D_k)) \]
+
+ Valgono le seguenti:
+ \begin{itemize}
+  \item Il primo nastro è di \textbf{sola lettura}: $\sigma_1' = \sigma_1$
+  \item L'ultimo nastro è di \textbf{sola scrittura}: $D_k = R$, oppure $D_k = - \implies \sigma'_k=\sigma_k$
+  \item La macchina \textbf{visita al massimo una cella bianca} a destra del dato d'ingresso (che ipotizziamo non contenere il carattere bianco): $\sigma_1 = \# \implies D_1 \in \{L, -\}$
+ \end{itemize}
+
+
+\end{deff}
+
+\newpage
+
+\begin{mdframed}
+
+
+\begin{prop}
+ Per ogni MdT a $k$ nastri $M$ che decide $I$ in tempo deterministico $f$ esiste una MdT a $k+2$ nastri $M'$ di tipo I/O che decide $I$ in tempo deterministico $c\cdot f$, per qualche costante $c$.
+\end{prop}
+
+\dotfill
+
+\begin{proof}
+ La macchina copia l'input dal primo nastro di sola lettura nel secondo, in $|x| + 1$ passi; poi opera come $M$, e infine copia il risultato dal penultimo nastro all'ultimo (di sola scrittura) al più in $f(|x|)$ passi. \smallskip
+
+ La macchina $M'$ ha impiegato quindi al più un numero di passi pari a $2 f(|x|) + |x| + 1$. Determinare ora la costante $c$ è immediato.
+
+
+\end{proof}
+
+\end{mdframed}
+
+Ancora una volta abbiamo mostrato che modifiche algoritmicamente ``ragionevoli'' alle MdT non ne alterano il potere espressivo.
+
+\paragraph{Complessità in spazio deterministico}
+
+Definiamo lo spazio necessario ad una computazione come il numero totale delle caselle toccate \textbf{solamente} sui nastri di lavoro (non su input e output).\smallskip
+
+Modifichiamo la definizione di configurazione, in modo che tenga traccia di \textbf{tutte} le caselle toccate, i.e. anche quelle divenute bianche. Formalmente dovremmo aggiungere un simbolo $\triangleleft$ da usare come \emph{delimitatore} della parte scritta.
+
+\begin{deff}[spazio deterministico]
+\label{spazio_det}
+Sia $M$ una MdT a $k$ nastri di tipo $I/O$ tale che \[\forall x . (q_0, \underline{\triangleright} x,\underline{\triangleright},\hdots,\underline{\triangleright}) \to (H, w_1, \hdots, w_k)\,\,\text{ con }H \in \{\textsc{si, no}\}\]
+\end{deff}
+lo \emph{spazio richiesto} da $M$ per decidere è
+
+\[ \sum_{i = 2}^{k-1} |w_i| \]
+
+Dove $|w_i|$ è la lunghezza della stringa $w_i$, ossia esattamente il numero di caratteri toccati dalla computazione sul nastro $i$-esimo.\smallskip
+
+Diciamo che, se $M$ decide $I$ in spazio deterministico $f(n)$, allora $I \in SPACE(f(n))$.\smallskip
+
+
+Alcuni autori definiscono lo spazio richiesto come $\max_{2 \leq i \leq k-1}|w_i|$, ma l'unica differenza dalla nostra definizione è un fattore $k$, che sparisce quando si considerano gli ordini di grandezza.
+\begin{mdframed}
+\begin{teo}[Compressione lineare dello spazio]
+\[I \in SPACE(f(n)) \implies \forall \epsilon \in \mathbb R^+ . I \in SPACE (2 + \epsilon \cdot f(n))\]
+\end{teo}
+\end{mdframed}
+
+\begin{deff}
+ \[PSPACE = \bigcup_{k \geq 1} SPACE(n^k)\]
+ \[LOGSPACE = \bigcup_{k \geq 1} SPACE(k\cdot \log n)\]
+\end{deff}
+\begin{mdframed}
+\begin{teo}
+\[ LOGSPACE \subsetneq PSPACE \]
+\end{teo}
+Non dimostrato
+\end{mdframed}
+\newpage
+\begin{mdframed}
+\begin{teo}
+\[ LOGSPACE \subseteq \mathcal P\]
+\end{teo}
+
+\dotfill
+
+\begin{proof} Svolgiamo la dimostrazione per macchine a 3 nastri.\smallskip
+
+ Poiché $I \in LOGSPACE$, c'è una MdT $M$ che decide ogni sua istanza $x \in I$ in $\bigo (\log |x|)$ spazio deterministico, basta notare che $M$ può attraversare al più:
+
+ \[ \bigo (|x| \cdot log |x| \cdot \#Q \cdot \# \Sigma^{\log|x|}) \]
+ configurazioni non terminali diverse.\smallskip
+\begin{itemize}
+ \item $\#Q$ è il numero di stati
+ \item $|n|\cdot\log|x|$ sono le posizioni possibili del cursore nei nastri di input e lavoro;
+ \item $\#\Sigma^{\log |x|}$ è il numero di possibili stringhe che posso scrivere nel nastro di lavoro
+
+\end{itemize}
+
+ \[\begin{aligned}
+& \bigo (|x| \cdot log |x| \cdot \#Q \cdot \# \Sigma^{\log|x|}) \\
+= & \bigo (|x| \cdot log |x| \cdot \# \Sigma^{\log|x|})\\
+= & \bigo (|x|^k)
+  \end{aligned}\]
+
+$n = |x|$, un tale $k$ deve soddisfare le seguenti disuguaglianze:
+ \[\begin{aligned}
+  n \cdot \log n \cdot \#\Sigma^{\log n} &\leq n^k\\[10pt]
+  \log(n) + \log(\log(n)) + \log(n)\cdot \log(\#\Sigma) &\leq k \cdot \log n\\[10pt]
+  1 + \frac{\log(\log(n))}{\log n} + \log(\#\Sigma) &\leq k\\[10pt]
+  1 + \log(\log(n) - n) + \log(\#\Sigma) &\leq k
+  \end{aligned}\]
+
+ Una computazione terminante non può passare per la stessa configurazione due volte, se no entrerebbe in un ciclo, quindi una computazione ha almeno $\bigo(|x|^k)$ passi per qualche $k$.
+\end{proof}
+\end{mdframed}
+\newpage
+
+\subsection{Misure di complessità non deterministiche}
+
+\begin{deff}[MdT non deterministica]
+ $N = (Q, \Sigma, \Delta, q_0)$
+
+ \begin{itemize}
+  \item $Q, \sigma, q_0$ come prima
+  \item $\Delta \subseteq (Q\ \times \Sigma) \times ((Q \cup \{\SI, \NO\}) \times \Sigma \times \{ L, R, - \})$ \hspace{1cm} relazione -- non più funzione
+ \end{itemize}
+
+\end{deff}
+
+
+\begin{deff}
+ $N$ MdT \emph{non deterministica} decide $I \iff N(x) \to^{\star} (\SI, w)$
+\end{deff}
+
+Per accettare basta mostrare una computazione che accetta, mentre per rifiutare bisogna mostrare che \textbf{tutte} le computazioni non accettano
+
+\begin{deff}
+ $N$ decide $I$ in tempo \emph{non deterministico} $f$ se
+ \[ \forall x \in I . \exists w : N(x) \to^t (\SI, w), \quad t \leq f(|x|)\]
+ O, in una macchina n.d. a $k$ nastri (I/O): la somma degli $|w_i|$ deve essere minore di $f(|x|)$, come nella definizione \ref{spazio_det}.
+\end{deff}
+
+NPSPACE e NPTIME = $\mathcal{NP}$ sono definiti come ovvio, a partire da NTIME e NSPACE, anch'essi definiti in modo analogo a TIME e SPACE.
+
+\begin{mdframed}
+\begin{teo}[Di Savitch]
+ \[ NPSPACE = PSPACE \]
+\end{teo}
+\end{mdframed}
+
+\begin{mdframed}
+ \begin{teo}
+  \[I \in NTIME(f) \implies \exists c \,\,.\,\, I \in TIME(c^f)\]
+
+  i.e. $NTIME(f(n)) \subseteq TIME(c^{f(n)})$
+
+  \dotfill
+
+  \begin{proof}
+   Sia $d$ il grado di non-determinismo di $N$, cioè:
+   \[ d = \max\{ \text{Grado}(q, \sigma), q \in Q, \sigma \in \Sigma \} \]
+   Dove $\text{Grado}(q, \sigma) = \# \{ (q', \sigma', D) \mid ((q, \sigma), (q', \sigma', D)) \in \Delta \}$, ossia il numero di transizioni che partono da $(q, \sigma)$. Supponiamo, per semplicità di trattazione, che nel seguito la macchina abbia sempre $d$ scelte;
+   Per ogni coppia $(q, \sigma)$ ordiniamo lessicograficamente $\Delta(q, \sigma)$. Ogni computazione di $N$ è una sequenza di scelte. Se tale sequenza è lunga $t$, possiamo vederla come una successione lunga $t$ di numeri naturali $\in [0.. d-1]$, rappresentando con 0 la prima scelta. La macchina $M$ riproduce la sequenza di scelte $(c_1 \hdots c_t)$ tenendo il numero $t'$ in base $d$ che la rappresenta sul nastro aggiuntivo; Se la simulazione arriva in uno stato $\SI$ termina accettando, se no la macchina $M$ genera la prossima successione $t' + 1$. Se tutte le computazioni terminano in stato $\NO$, la macchina $M$ termina rifiutando. Il numero di scelte è $\bigo(d^{f(n) + 1})$, quindi basta sostituire $c$ con $d$
+  \end{proof}
+ \end{teo}
+\end{mdframed}
+\newpage
+\begin{mdframed}
+\paragraph{Commesso viaggiatore}\,\\ Trovare il cammino di costo minimo che attraversa tutti i nodi una ed una sola volta su grafi \textbf{pesati} \textbf{non orientati}
+
+\dotfill
+
+Per ora si conoscono solo \textbf{algoritmi polinomiali n.d.} o \textbf{esponenziali deterministici}.
+
+\dotfill
+
+Per trasformare questo problema in uno di decisione, lo possiamo riscrivere come:
+
+\textbf{Esiste un cammino} [...] di costo $\leq B$ su G [...]?
+
+\begin{itemize}
+ \item Soluzione bruteforce: genera tutte le permutazioni di interi da 1 ad $n$ (= $|N|$) --- costo $\mathcal{O}(n!)$. Per ogni permutazione si deve controllare se il costo è minore di $B$, e questo comporta tempo $\mathcal{O}(n^3)$: si deve accedere $\bigo(n)$ volte ad ognuna delle $\bigo(n^2)$ coppie $(i, j)$ per ottenere la distanza $d(i, j)$
+ \item Soluzione non deterministica: Genera le permutazioni \textbf{implicitamente} e scrive una stringa lunga $n$ in $O(n)$ passi. La macchina n.d. poi verifica se tale permutazione è un cammino accettabile, sempre in $\bigo(n^3)$
+\end{itemize}
+
+
+\end{mdframed}
+
+\paragraph{Funzioni Appropriate} Una funzione $f$ è appropriata/costruibile/onesta se:
+\begin{itemize}
+ \item $f$ è monotona crescente
+ \item $\exists M$ a $k$ nastri tale che \[M(x) \to^*\star^{f(|x|)} \text{\quad\quad $\star \notin \Sigma$ simbolo speciale}\] in tempo $O(f(|x|) + |x|)$ e spazio $O(f(|x|))$ \end{itemize}
+
+ La definizione sembra mordersi la coda; seguono alcuni criteri:
+
+ \begin{itemize}
+  \item $k, n, n^k, k^n, n!, \lfloor\log n \rfloor, \lfloor\sqrt n\rfloor$ sono funzioni appropriate
+  \item $f, g$ appropriate $ \implies f \cdot g,\,\, f + g$ appropriate
+  \item $f \circ g$ appropriata, $f^g$ appropriata.
+ \end{itemize}
+
+ \begin{mdframed}
+  \begin{teo}[gerarchia di tempo e spazio]
+   Sia $f$ appropriata:
+   \begin{itemize}
+    \item $TIME(f(n)) \subsetneq TIME(f(2n + 1)^3)$
+    \item $SPACE(f(n)) \subsetneq SPACE\big(f(n) \cdot \log f(n)\big)$
+   \end{itemize}
+  \end{teo}
+
+  \dotfill
+
+  \begin{proof}
+   Omessa, ma notiamo che il primo punto si dimostra mostrando che:
+   \[ \{ x \mid \varphi_x(x) \text{ converge entro } f(|x|) \text{ passi} \} \]
+
+   Appartiene a $TIME(f^3)$ e non a $TIME(f)$. La dimostrazione del secondo punto è analoga.
+   \end{proof}
+ \end{mdframed}
+
+ Naturalmente esiste un teorema analogo per le misure non deterministiche.
+\newpage
+
+
+ \begin{deff}
+  \[ EXP = \bigcup_{k \geq 1} TIME (2^{n^k}) \]
+ \end{deff}
+
+ \begin{mdframed}
+ \begin{prop}
+  \[ \mathcal P \subsetneq EXP\]
+ \end{prop}
+
+ \dotfill
+
+ \begin{proof}
+  L'inclusione (1) è ovvia poiché $2^n$ cresce più velocemente di ogni polinomio.\smallskip
+
+  Per mostrare che questa è propria, si noti:
+
+  \[ \mathcal P \underset{(1)}\subseteq TIME (2^n) \underset{T.ger}\subsetneq TIME \Big(2^{(2n + 1)^3}\Big) \underset{6n + 3 \leq n^2} \subseteq TIME\Big(2^{n^2}\Big) \]
+ \end{proof}
+
+ \dotfill\smallskip
+
+ Inoltre, dato che $NTIME (f(n)) \subseteq TIME\Big(c^{f(n)}\Big)$ per qualche $c$ $\implies \mathcal{NP} \subseteq EXP $. 
+
+ \end{mdframed}
+
+\begin{mdframed}
+ \begin{teo}
+  Siano $f$ una funzione di misura appropriata e $k$ una costante; allora:
+
+  \begin{itemize}
+   \item $SPACE (f(n)) \subseteq NSPACE(f(n))$
+   \item $TIME (f(n)) \subseteq NTIME(f(n))$
+   \item $NSPACE (f(n)) \subseteq TIME (k^{\log n + f(n)})$
+  \end{itemize}
+
+ \end{teo}
+
+\end{mdframed}
+
+\begin{mdframed}
+ \begin{teo} [Sempre peggio]
+  Per ogni funzione calcolabile totale $g$ esiste un problema $I \in TIME(f(n))$ e $I \notin TIME(g(n))$, con $f(n) \geq g(n)$ definitivamente
+ \end{teo}
+
+ \dotfill
+
+ I.e. \textbf{la gerarchia non è superiormente limitata}
+ \end{mdframed}
+
+
+ \begin{mdframed}
+  \begin{teo} [Di accelerazione, Blum]
+    Per ogni funzione calcolabile totale $h$ esiste un problema $I$ tale che, per ogni algoritmo $M$ che decide $I$ in tempo $f$ esiste una macchina $M'$ che decide $I$ in tempo $f'$, con
+    \[ f(n) > h(f'(n)) \text{ definitivamente}\]
+  \end{teo}
+
+  \dotfill
+
+  \paragraph{Intuitivamente} Ci sono programmi che sono più veloci su una macchina universale vecchia e lenta che su una macchina universale nuova e veloce.
+
+  \paragraph{Intuizione: Blum} Esistono problemi per cui non esiste un algoritmo ottimo.
+
+  \dotfill
+
+  Attenzione: Il problema che si costruisce a partire da $h$ è \textbf{artificiale} (non è un problema incontrato prima) e, sebbene si sappia che una successione di algoritmi sempre migliori esista, non sappiamo come si costruiscono l'uno dall'altro!
+
+
+ \end{mdframed}
+
+
+\newpage
+
+\begin{mdframed}
+\begin{teo}[Della lacuna, Borodin]
+ Esiste $f$ calcolabile tale che $TIME(f(n)) = TIME(2^{f(n)})$
+\end{teo}
+
+\dotfill
+
+Una formulazione più fine di questo teorema richiede che $f$ sia monotona
+
+\end{mdframed}
+
+\begin{mdframed}
+\begin{deff}[Assiomi di Blum]
+Una funzione $\phi$ è una misura di complessità se prende come input una funzione $\psi$ ed il suo dato di ingresso $x$ e restituisce un naturale, e valgono i seguenti assiomi
+
+\begin{itemize}
+ \item [A1.] $\phi(\psi, x)$ è definita sse $\psi(x)$ lo è (ossia hanno lo stesso domino)
+ \item [A2.] Per ogni $\psi, x, k$, l'uguaglianza: 
+ \[ \phi(\psi, x) = k\]
+ è decidibile. In altre parole, l'insieme $\{ (\psi, x, k) \in (\naturals \to \naturals) \times \naturals^2 \mid \phi(\psi, x) = k\}$ è ricorsivo.
+\end{itemize}
+
+ 
+\end{deff}
+\end{mdframed}
+
+\hspace{5cm}
+
+\subsection{$\mathcal P$, $\mathcal NP$}
+\begin{mdframed}
+\paragraph{Tesi di Cook-Karp} Un problema è trattabile esattamente quando ammette un algoritmo polinomiale
+\end{mdframed}
+
+\subsubsection{SAT}
+
+Il problema SAT consiste nel decidere se, data un'espressione booleana $B$ in \textbf{forma normale congiuntiva} (\emph{and di or}), esiste un assegnamento $\mathcal V$ tale che $\mathcal V \models B$ (i.e. $\mathcal V$ soddisfa $B$).\smallskip
+
+SAT è in NP perché, banalmente, basta lasciar scegliere al non-determinismo l'assegnamento corretto e controllare se $B$ è soddisfatta, in tempo polinomiale.
+
+\subsubsection{HAM}
+
+HAM consiste nel decidere se un grafo \textbf{orientato} ha un cammino hamiltoniano, i.e. esiste una permutazione dei nodi tale che esista un arco tra ogni nodo ed il successivo nella permutazione.
+
+(esiste un cammino che tocca tutti i nodi una ed una sola volta)
+\newpage
+\begin{mdframed}
+ 
+\subsubsection{HAM $\leq_L$ SAT}
+\begin{proof}
+ 
+Dobbiamo costruire una funzione $f \in LOGSPACE$ tale che $G$ ha un cammino hamiltoniano se e solo se $f(G)$ è soddisfacibile.\smallskip
+
+Prima scriviamo un'espressione booleana in forma congiuntiva che \textit{rappresenta} i cammini hamiltoniani; poi mostriamo che tale espressione booleana è soddisfacibile se e solo se esiste un cammino hamiltoniano nel grafo $G$. Infine mostriamo che la funzione è logaritmica in spazio.\medskip
+
+Sia $n = |V|$, allora $f(G)$ ha $n^2$ variabili booleane: $x_{ij}$, con $i, j$ comprese tra 1 ed $n$. Costruiamo i congiunti che rappresentano le proprietà dei cammini hamiltoniani:
+
+\begin{enumerate}
+ \item Lo stesso nodo $j$ non può comparire due volte nella permutazione/cammino: $\neg(x_{ij} \wedge x_{kj})$, con $i \neq k$. Applicando De Morgan (dobbiamo portare in FNC):
+ \[ (\neg x_{ij} \vee \neg x_{kj}) \quad i \neq k \]
+ \item Ogni nodo deve apparire in un cammino:
+ \[ (x_{1j} \vee ... \vee x_{nj})\quad 1 \leq j \leq n\]
+ \item Qualche nodo deve essere l'$i$-esimo del cammino:
+ \[ (x_{i1} \vee ... \vee x_{in})\quad 1 \leq i \leq n\]
+ \item Due nodi non possono essere contemporaneamente l'$i$-esimo:
+ \[ (\neg x_{ij} \vee \neg x_{ik})\quad j \neq k\]
+ \item Se $(i, j)$ non è un arco di $G$, $i$ e $j$ non possono apparire in sequenza nel cammino:
+ \[ (\neg x_{ki} \vee \neg x_{k+1, j}) \quad \forall k.1 \leq k \leq n-1\quad \forall (i, j) \notin A\]
+\end{enumerate}
+
+Vediamo adesso che $G$ ha un cammino hamiltoniano se $\mathcal V \models f(G)$.
+
+Si noti che se $\mathcal V \models f(G)$, allora per ogni $j$ esiste unico $i$ tale che $\mathcal V(x_{ij}) = tt$, altrimenti (1) e (2) non potrebbero essere soddisfatte entrambe. Allo stesso modo per ogni $i$ esiste un solo $j$ tale che $\mathcal V(x_{ij}) = tt$. 
+
+Quindi l'espressione booleana rappresenta una permutazione dei nodi, e per (5) abbiamo che tale permutazione è un cammino.\smallskip
+
+
+Vediamo ora l'inverso: sia $H = (\Pi(1), \hdots, \Pi(n))$ un cammino hamiltoniano; allora è immediato verificare che:
+\[ \mathcal V (x_{ij}) = \begin{cases}
+                          tt & \Pi(j) = i\\
+                          ff & \Pi(j) \neq i
+                         \end{cases}
+ \]
+soddisfa $f(G)$.\smallskip
+
+Infine, per vedere che la trasformazione è logaritmica in spazio, basta notare che le uniche informazioni che dobbiamo salvare nei nastri di lavoro sono $n$ e tre contatori $i, j, k$ che vanno da 1 ad $n$, tutti rappresentati in binario, quindi il costo in spazio è $\bigo(\log n)$
+\end{proof}
+
+\end{mdframed}
+
+\newpage
+\subsubsection{Problema CRICCA}
+Consiste nel decidere se in un grafo (non orientato) esiste un sottografo completo (cricca) di ordine $k$.
+
+\begin{mdframed}
+\subsubsection{SAT $\leq_L$ CRICCA}
+
+\begin{proof}
+ Data un'espressione booleana $B = \bigwedge_{1\leq k\leq n}C_k$, costruisci il grafo $f(B) = (N, A)$ così:
+ 
+ \begin{itemize}
+  \item[i)] $N$ è l'insieme delle occorrenze dei letterali in $B$
+  \item[ii)] $A$ è l'insieme $\{ (i, j) \mid i \in C_k \implies (j \notin C_k \wedge i \neq \neg j) \}$
+  
+  Ossia esiste un arco tra:
+  
+  \begin{itemize}
+   \item ogni coppia di nodi che \textbf{non fanno parte dello stesso congiunto} e
+   \item che \textbf{non sono l'uno il negato dell'altro}
+  
+  \end{itemize}
+
+ \end{itemize}
+Essendo $B$ in forma normale congiuntiva, è soddisfatta se e solo se almeno un letterale in ogni congiunto è vero. Quindi, $B$ è soddisfacibile se e solo se $f(B)$ ha una cricca di ordine pari al numero di congiunti.
+\end{proof}
+
+\end{mdframed}
+
+
+\begin{deff}[Circuito booleano]
+ Un circuito booleano è un grafo diretto aciclico in cui i nodi sono detti porte, ed hanno una \textbf{sorta} $s(i) \in \{tt, \textit{ff}, \neg, \vee, \wedge\}\cup X$, dove $X$ è un insieme di variabili. Alcune porte sono \textbf{ingressi}, ed hanno sorta $tt, \textit{ff}$ o in $X$\smallskip
+ 
+
+ Il valore di verità di una determinata porta $i$ è così definito:
+ 
+ \[ \begin{aligned}
+[\![ i ]\!]_\mathcal{V} &= tt && \text{ se } s(i)= tt\\
+&= \emph{ff} && \text{ se } s(i)= \emph{ff}\\
+&= \mathcal V(x) && \text{ se } s(i)= \emph{x}\\
+&= \text{not } [\![ j ]\!]_\mathcal{V}  && \text{ se } s(i)= \neg \text{ e } (j, i) \in A\\
+&= [\![ j ]\!]_\mathcal{V} \text{ or } [\![ k ]\!]_\mathcal{V}  && \text{ se } s(i)= \vee \text{ e } (j, i), (k, i) \in A\\
+&= [\![ j ]\!]_\mathcal{V} \text{ and } [\![ k ]\!]_\mathcal{V}  && \text{ se } s(i)= \wedge \text{ e } (j, i), (k, i) \in A\\
+\end{aligned}\]
+ 
+ Il valore del circuito è quello della \textbf{porta di uscita} (che assumiamo essere unica).
+\end{deff}
+
+
+\subsubsection{Circuit SAT}
+
+Il problema CIRCUIT SAT consiste nel decidere se esiste un assegnamento $\mathcal{V}$ tale che $\mathcal V(C) = tt$
+\begin{mdframed}
+
+\begin{prop}
+ Circuit SAT $\in \mathcal{NP}$: banale, dato l'assegnamento ci metto tempo polinomiale a certificare la soddisfacibilità.
+\end{prop}
+
+\end{mdframed}
+
+\subsubsection{Circuit Value}
+Consiste nel calcolare il valore di un circuito senza variabili, ossia in cui tutti gli ingressi sono della sorta \textit{tt, ff}. Tale problema è ovviamente in $\mathcal P$.
+
+\begin{mdframed}
+ 
+\begin{prop}
+CIRCUIT VALUE $\leq_L$ CIRCUIT SAT 
+\end{prop}
+
+\dotfill
+
+Questo è vero poiché \textbf{ogni caso particolare di un problema si riduce al problema generale} attraverso la funzione identità.
+
+\end{mdframed}
+
+\newpage
+
+\subsection{Problemi completi per $\mathcal P$, $\mathcal{NP}$}
+
+\begin{mdframed}
+ 
+\begin{prop}
+CIRCUIT-SAT $\leq_L$ SAT 
+\end{prop}
+
+\begin{proof}
+ Dato il circuito $C = (N, A)$ con variabili in $X$, cerco una riduzione $f \in LOGSPACE$ tale che $f(C)$ sia soddisfacibile $\iff$ $C$ lo è.
+
+ \begin{itemize}
+  \item Le variabili $X'$ sono $X \cup \{ x_g \mid g \in N\}$, ossia \emph{si aggiunge una variabile per ogni porta}
+  \item Per ogni porta di $g$ si costruiscono i congiunti di $f(C)$ come segue:
+  \begin{itemize}
+   \item Se $g$ è porta di uscita, allora si genera il congiunto $x_g$
+   \item $s(g) = tt/\emph{ff}$ si genera $x_g/\neg x_g$
+   \item $s(g) = x \in X$ si genera il congiunto equivalente a $x_g \iff x$:
+   \[\begin{aligned}
+      (x_g \iff x) & \equiv (x_g \implies x) \wedge (x \implies x_g)\\
+      & \equiv (\neg x_g \vee x) \wedge (\neg x \vee x_g)
+     \end{aligned}\]
+   \item Se $s(g) = \neg$ e $(h, g) \in A$, ossia per ogni arco da $h$ a $g$: si genera il congiunto equivalente a $x_g \iff \neg x_h$, ossia $(\neg x_g \vee \neg x_h) \wedge (x_h \vee x_g)$
+   \item Se $s(g) = \wedge$, e $(h, g), (k, g) \in A$ allora genera $x_g \iff (x_h \wedge x_k)$:
+   \[\begin{aligned}
+   &(\neg x_g \vee (x_h \wedge x_k)) \wedge (\neg (x_h \wedge x_k) \vee x_g ) \\
+   &(\neg x_g \vee x_h) \wedge (\neg x_g \vee x_k) \wedge (\neg x_h \vee \neg x_k \vee x_g)
+   \end{aligned}\]
+   \item Se $s(g) = \vee$, e $(h, g), (k, g) \in A$ allora genera $x_g \iff (x_h \vee x_k)$:
+   \[\begin{aligned}
+   &(\neg x_g \vee (x_h \vee x_k)) \wedge (\neg (x_h \vee x_k) \vee x_g ) \\
+   &(\neg x_g \vee x_h \vee x_k) \wedge ((\neg x_h \wedge \neg x_k) \vee x_g )\\
+   &(\neg x_g \vee x_h \vee x_k) \wedge (\neg x_h \vee x_g) \wedge (\neg x_k \vee x_g)
+   \end{aligned}\]
+  \end{itemize}
+ \end{itemize}
+
+ La trasformazione richiede spazio logaritmico perché mi servono solo tre contatori (per $x_g$, $x_h$, $x_k$), che rappresento in binario.
+\end{proof}
+
+\dotfill
+
+\paragraph{Corollario}
+\begin{itemize}
+ \item CIRCUIT VALUE $\leq_L$ SAT
+ \item CIRCUIT VALUE $\leq_L$ CRICCA
+\end{itemize}
+\end{mdframed}
+
+\newpage
+\subsubsection{$\mathcal P$-completezza di CIRCUIT-VALUE}
+
+\begin{deff}[Tabella di computazione]
+ La \emph{tabella di computazione} $T_M$ di una MdT $M$ deterministica ad un nastro è una matrice quadrata in cui $T(i, j)$ è il $j$-esimo carattere nel nastro all'$i$-esimo passo di computazione:
+
+ \begin{center}
+ \begin{tabular}{c | c c c c c c}
+  & 1 & 2 & 3 & 4 & $\hdots$\\
+  \hline
+  1 & $\triangleright$ & $a_{q_0}$ & $b$ & $b$ & $\hdots$ & \#\\
+  2 & $\triangleright$ & $\triangleright$ & $b_{q_a}$ & $b$ & $\hdots$& \#\\
+  3 & $\triangleright$ & $\triangleright$ & $b$ & $b_{q_a}$ & $\hdots$& \#\\
+  4 & $\triangleright$ & $\triangleright$ & $b$ & $b$ & $\hdots$& \#\\
+  $\vdots$ &
+ \end{tabular}
+
+ \end{center}
+
+ Con alcune ``standardizzazioni'':
+ \begin{enumerate}
+  \item $M$ si arresta prima di $\underbrace{|x|^k}_n - 2$ passi $\implies$ la tabella è $n\times n$
+  \item $M$ non tocca mai il $\triangleright$ in colonna 1
+  \item $M$ non tocca mai il $\#$ in colonna $n$
+  \item $T$ contiene tanti $\#$ a destra quanti ne servono
+  \item Lo stato e la posizione del cursore sono così codificati: Si aggiungono dei nuovi simboli che rappresentano gli stati, e nella riga:
+  \begin{center}
+   \begin{tabular}{c | c c c c c c}
+    i & $\triangleright$ & $\sigma^1$ & $\sigma^2_{q}$ & $\sigma^3$ & $\hdots$& \#\\
+   \end{tabular}
+  \end{center}
+
+  Lo stato è $q$ ed il cursore è nella posizione alla sinistra del simbolo arricchito, in questo caso su $\sigma^1$
+ \item Se $\sigma_{\SI}$ o $\sigma_{\NO}$ si trova su $T(i, j)$, con $i < n$ e $j > 2$, viene spostato in $T(k, 2)$ con altri passi.
+ \item Si riempie con righe uguali alla $k$-esima finché serve.
+ \end{enumerate}
+
+\end{deff}
+
+\begin{mdframed}
+\begin{prop}
+\label{treuno}
+ $T(i, j)$ dipende solo dai valori di $T(i-1, j-1)$, $T(i-1, j)$, $T(i-1, j + 1)$, in base alla funzione $\delta$.
+
+ \dotfill
+
+ \begin{center}
+
+ \begin{tikzpicture}[scale = .4]
+ \draw (0,0) rectangle (2,1);
+ \draw (3,0) rectangle (5,1);
+ \draw (6,0) rectangle (8,1);
+ \draw (3,-2) rectangle (5,-1);
+ \draw [-latex] (1, 0) -- (3.5, -1);
+ \draw [-latex] (4, 0) -- (4, -1);
+ \draw [-latex] (7, 0) -- (4.5, -1);
+ \end{tikzpicture}
+
+ \end{center}
+
+ Se il cursore è in posizione $i$, può spostarsi su $i-1$ o $i+1$, ed il carattere in $i$ può essere modificato.
+
+\end{prop}
+\end{mdframed}
+\newpage
+
+\begin{mdframed}
+\begin{teo}[CIRCUIT VALUE è $\mathcal{P}$-completo]
+\end{teo}
+
+\dotfill
+
+\begin{proof}
+Sappiamo che CIRCUIT-VALUE $\in \mathcal P$. Prendiamo quindi qualunque $I \in \mathcal P$ e mostriamo che esiste una $f \in LOGSPACE$ che lo trasforma in CIRCUIT-VALUE. Sia $M$ una MdT che decide $I$ in $n^k$, e $T$ la sua tabella di computazione.
+
+\begin{itemize}
+ \item Costruiamo un circuito a partire dalla tabella di computazione su $x$. Per far ciò \textbf{codifichiamo ogni simbolo} $\rho \in \Sigma'$ (dove $\Sigma'$ è l'alfabeto con i simboli arricchiti) \textbf{con una stringa di bit} $(S_1, \hdots, S_m) \in (tt, \emph{ff})^m$. In questo modo ogni riga della tabella è una stringa di bit lunga $n^k \cdot m$. Rappresentiamo quindi ognuno degli $m$ bit della codifica del simbolo $T(i, j)$ come $S_{i, j, m}$.
+ \item Adesso sappiamo che il bit $S_{i, j, l}$ dipende solo dalle tre $m$-ple di bit che rappresentano i simboli come in figura \ref{treuno}, quindi ci sono $m$ funzioni booleane:
+ \[ \begin{aligned}
+                   S_{i, j, l} = F_l( &S_{i-1, j-1, 1}, \hdots, S_{i-1, j-1, m},\\
+                        &S_{i-1, j, 1}, \hdots, S_{i-1, j, m},\\
+                        &S_{i-1, j+1, 1}, \hdots, S_{i-1, j+1, m})
+                  \end{aligned}
+ \]
+
+ Per ogni funzione booleana esiste un circuito booleano $C_I$ composto da dei sottocircuiti $\overline C$ con $3m$ ingressi ed $m$ uscite, ``incastrati'' l'uno sull'altro come da figura \ref{treuno}. \smallskip
+
+ La dimostrazione di $C_I = f(x)$ è true se e solo se $x \in I$ procede per induzione sul numero dei passi della computazione:
+ \begin{enumerate}
+  \item Caso base $i = 1$ banale
+  \item Il valore per $i-1$ è ben calcolato e dipende solo dai tre precedenti. Il valore per $i$ dipende da tre valori calcolati in $i-1$, in modo che dipende esclusivamente dalla funzione di transizione, perciò è immediato dedurre che $\overline C_{n^k, 2} = tt, \hdots, tt$ se e solo se $T(n^k, 2) = \sigma_\SI$, ovvero $x \in I \iff f(x) = tt, \hdots, tt$.
+
+  \item[$\circ$] Adesso basta vedere che $f \in LOGSPACE$:
+  \begin{itemize}
+   \item Vanno costruite le porte di ingresso: si esamina $x$ e si conta fino a $|x|^k$, ricordando $k$ in base 2, scrivendo la codifica di $x$ e di \# finché serve
+   \item Gli elementi della prima ed ultima tabella sono circuiti costanti
+   \item Vengono create $(x^k - 1) \cdot (x^k - 2)$ copie del circuito $\overline C$, che dipende solo da M ed ha costo costante. A ciascuna copia associamo gli appropriati indici; tali indici sono tutti minori di $|x|^k$, ed averli rappresentati in binario ci consente di manipolarli in $\bigo (\log |x|^k) = \bigo (\log |x|)$
+  \end{itemize}
+
+ \end{enumerate}
+
+\end{itemize}
+
+\end{proof}
+
+\dotfill
+
+\paragraph{Corollario} MONOTONE CIRCUIT VALUE è  $\mathcal P$-completo\smallskip
+
+\dotfill\smallskip
+
+MONOTONE CV è una variante di CV che \textbf{non utilizza la negazione}. I circuiti senza il $\neg$ sono meno espressivi di quelli con, ma sono altrettanto difficili da valutare.
+
+\dotfill
+
+\begin{proof}
+ Mostriamo che CV $\leq_L$ MONOTONE CV, cioè trasformiamo un circuito qualsiasi in uno monotono equisoddisfacibile. Questo si può fare applicando le regole di DeMorgan dall'alto verso il basso, trasformando alla fine le negazioni in dei \emph{ff} e aggiungendo porte. Questo si fa in logspace perché basta visitare una sola volta le porte, rappresentate come $(i, j)$ dove $i, j$ sono gli indici di ``livello e colonna'', rappresentati in binario.
+\end{proof}
+\end{mdframed}
+
+\newpage
+
+\subsubsection{$\mathcal{NP}$-completezza di SAT }
+\begin{mdframed}
+ 
+\begin{teo}[SAT è $\mathcal{NP}$-completo]
+\begin{itemize}
+ \item []
+ \item Sappiamo già che $SAT \in \mathcal{NP}$.
+ \item Devo mostrare che $\forall I \in \mathcal {NP}.\, I \leq_L SAT$. 
+ 
+ Dato che sappiamo $\text{CIRCUIT SAT} \leq_L SAT$, basta mostrare che 
+ 
+ \[\forall I\in \mathcal {NP}.\,I \leq_L \text{CIRCUIT SAT}\]
+ 
+ Sia $I \in \mathcal {NP}$. Costruiamo $f \in LOGSPACE$ t.c. $x \in I \iff f(I)$ è soddisfacibile. \smallskip
+ 
+ Per ipotesi esiste una MdT non deterministica che decide $I$ in tempo $|x|^k$. Assumiamo che la macchina non deterministica faccia scelte binarie (possiamo sempre ricondurci a questo caso): allora possiamo definire una stringa binaria:
+ 
+ \[ B = b_0b_1\hdots b_{|x|^k}\quad b_i \in \{tt, \emph{ff}\}\]
+ 
+ Ovviamente una macchina non deterministica non ha una tabella di computazione, ma fissata una serie di scelte se ne può costruire una. In questo caso però una casella non dipende solo dalle tre solite, ma anche dalla stringa $B$ delle scelte, quindi il circuito avrà $3m + 1$ ingressi ed $m$ uscite. $f \in LOGSPACE$ per la stessa ragione mostrata nella dimostrazione di CV $\mathcal P$-completo.
+\end{itemize}
+
+\end{teo}
+
+\end{mdframed}
+
+
+\end{document}
+
+
